@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"errors"
 	"fmt"
 
 	"cloud.google.com/go/firestore"
@@ -11,32 +10,56 @@ import (
 
 type (
 	queryCmdParams struct {
-		projectID string
-		path      string
-		where     []*firebase.FirestoreWhere
-		limit     int
-		orderBy   string
-		orderDir  firestore.Direction
+		projectID  string
+		collection string
+		where      []*firebase.FirestoreWhere
+		limit      int
+		orderBy    string
+		orderDir   firestore.Direction
 	}
 )
 
 var (
+	firebaseProjectIDFlag = &cli.StringFlag{
+		Name:     "project",
+		Aliases:  []string{"p"},
+		Usage:    "gcloud project id",
+		EnvVars:  []string{"GCLOUD_PROJECT", "GCLOUD_PROJECT_ID"},
+		Required: true,
+	}
+
+	firestoreCollectionPathFlag = &cli.StringFlag{
+		Name:    "collection",
+		Aliases: []string{"c"},
+		Usage:   "path to firestore collection separated with dashes (/)",
+		Action: func(ctx *cli.Context, s string) error {
+			return firebase.ValidateFirestoreCollectionPath(s)
+		},
+	}
+
+	firestoreWhereFlag = &cli.StringSliceFlag{
+		Name:    "where",
+		Aliases: []string{"w"},
+		Usage:   "documents filter. must be in format '{property-path} {operator} {value}'. can be used multiple times",
+		Action: func(ctx *cli.Context, s []string) error {
+			for i, where := range s {
+				_, err := firebase.ParseFirestoreWhere(where)
+				if err != nil {
+					return fmt.Errorf("invalid where clause (at position #%d)", i)
+				}
+			}
+
+			return nil
+		},
+	}
+
 	QueryCmd = &cli.Command{
 		Name:  "query",
 		Usage: "load data from firestore",
 		Flags: []cli.Flag{
-			&cli.StringFlag{
-				Name:     "project",
-				Aliases:  []string{"p"},
-				Usage:    "gcloud project id",
-				EnvVars:  []string{"GCLOUD_PROJECT", "GCLOUD_PROJECT_ID"},
-				Required: true,
-			},
-			&cli.StringSliceFlag{
-				Name:    "where",
-				Aliases: []string{"w"},
-				Usage:   "documents filter. must be in format '{property-path} {operator} {value}'. can be used multiple times",
-			},
+			firebaseProjectIDFlag,
+			firestoreCollectionPathFlag,
+			firestoreWhereFlag,
 			&cli.IntFlag{
 				Name:        "limit",
 				DefaultText: "no limit",
@@ -52,10 +75,7 @@ var (
 			},
 		},
 		Action: func(c *cli.Context) error {
-			params, err := createQueryCmdParams(c)
-			if err != nil {
-				return err
-			}
+			params := createQueryCmdParams(c)
 
 			client, err := firebase.InitFirestoreClient(params.projectID)
 			if err != nil {
@@ -64,7 +84,7 @@ var (
 			defer client.Close()
 
 			qb := firebase.NewQueryBuilder(client)
-			docs, err := qb.Collection(params.path).
+			docs, err := qb.Collection(params.collection).
 				WithWheres(params.where).
 				WithLimit(params.limit).
 				WithOrderBy(params.orderBy, params.orderDir).
@@ -84,26 +104,16 @@ var (
 	}
 )
 
-func createQueryCmdParams(c *cli.Context) (queryCmdParams, error) {
-	path := c.Args().Get(0)
-	if err := firebase.ValidateFirestoreCollectionPath(path); err != nil {
-		return queryCmdParams{}, err
-	}
-
+func createQueryCmdParams(c *cli.Context) queryCmdParams {
+	collection := c.String("collection")
 	projectID := c.String("project")
-	if projectID == "" {
-		return queryCmdParams{}, errors.New("project is required")
-	}
 
 	wheresRaw := c.StringSlice("where")
 	wheres := make([]*firebase.FirestoreWhere, len(wheresRaw))
 	for i, where := range wheresRaw {
-		w, err := firebase.ParseFirestoreWhere(where)
-		if err != nil {
-			return queryCmdParams{}, fmt.Errorf("invalid where clause %s", where)
+		if w, err := firebase.ParseFirestoreWhere(where); err == nil {
+			wheres[i] = w
 		}
-
-		wheres[i] = w
 	}
 
 	limit := c.Int("limit")
@@ -117,11 +127,11 @@ func createQueryCmdParams(c *cli.Context) (queryCmdParams, error) {
 	}
 
 	return queryCmdParams{
-		projectID: projectID,
-		path:      path,
-		where:     wheres,
-		limit:     limit,
-		orderBy:   order,
-		orderDir:  orderDir,
-	}, nil
+		projectID:  projectID,
+		collection: collection,
+		where:      wheres,
+		limit:      limit,
+		orderBy:    order,
+		orderDir:   orderDir,
+	}
 }
