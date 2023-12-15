@@ -13,7 +13,7 @@ type (
 		projectID  string
 		collection string
 		where      []*firebase.FirestoreWhere
-		limit      int
+		limit      uint
 		orderBy    string
 		orderDir   firestore.Direction
 	}
@@ -42,15 +42,20 @@ var (
 		Aliases: []string{"w"},
 		Usage:   "documents filter. must be in format '{property-path} {operator} {value}'. can be used multiple times",
 		Action: func(ctx *cli.Context, s []string) error {
-			for i, where := range s {
-				_, err := firebase.ParseFirestoreWhere(where)
+			for _, where := range s {
+				err := firebase.ValidateFirestoreWhere(where)
 				if err != nil {
-					return fmt.Errorf("invalid where clause (at position #%d)", i)
+					return fmt.Errorf("invalid where clause (%s)", where)
 				}
 			}
 
 			return nil
 		},
+	}
+
+	firestoreLimitFlag = &cli.UintFlag{
+		Name:        "limit",
+		DefaultText: "no limit",
 	}
 
 	QueryCmd = &cli.Command{
@@ -60,10 +65,7 @@ var (
 			firebaseProjectIDFlag,
 			firestoreCollectionPathFlag,
 			firestoreWhereFlag,
-			&cli.IntFlag{
-				Name:        "limit",
-				DefaultText: "no limit",
-			},
+			firestoreLimitFlag,
 			&cli.StringFlag{
 				Name:        "orderby",
 				DefaultText: "no ordering",
@@ -88,7 +90,7 @@ var (
 				WithWheres(params.where).
 				WithLimit(params.limit).
 				WithOrderBy(params.orderBy, params.orderDir).
-				Execute()
+				GetAll()
 			if err != nil {
 				return err
 			}
@@ -116,7 +118,7 @@ func createQueryCmdParams(c *cli.Context) queryCmdParams {
 		}
 	}
 
-	limit := c.Int("limit")
+	limit := c.Uint("limit")
 	order := c.String("orderby")
 
 	var orderDir firestore.Direction

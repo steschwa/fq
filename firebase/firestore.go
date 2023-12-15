@@ -2,7 +2,6 @@ package firebase
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -105,12 +104,24 @@ func ParseFirestoreWhere(where string) (*FirestoreWhere, error) {
 	return firestoreWhereParser.ParseString("", where)
 }
 
-func ValidateFirestoreCollectionPath(path string) error {
+func ValidateFirestoreWhere(where string) error {
+	_, err := firestoreWhereParser.ParseString("", where)
+	return err
+}
+
+func getFirestorePathParts(path string) []string {
 	if path == "" {
-		return errors.New("path is empty")
+		return []string{}
 	}
 
-	parts := strings.Split(path, "/")
+	return strings.Split(path, "/")
+}
+
+func ValidateFirestoreCollectionPath(path string) error {
+	parts := getFirestorePathParts(path)
+	if len(parts) == 0 {
+		return errors.New("path is empty")
+	}
 	if len(parts)%2 == 0 {
 		return errors.New("collection paths must contain an uneven amount of parts")
 	}
@@ -124,7 +135,11 @@ type (
 		q firestore.Query
 	}
 
-	FirestoreDocs []map[string]any
+	FirestoreDoc struct {
+		Path string
+		Data map[string]any
+	}
+	FirestoreDocs []FirestoreDoc
 )
 
 func NewQueryBuilder(client *firestore.Client) *FirestoreQueryBuilder {
@@ -145,12 +160,12 @@ func (qb *FirestoreQueryBuilder) WithWheres(wheres []*FirestoreWhere) *Firestore
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) WithLimit(limit int) *FirestoreQueryBuilder {
+func (qb *FirestoreQueryBuilder) WithLimit(limit uint) *FirestoreQueryBuilder {
 	if limit <= 0 {
 		return qb
 	}
 
-	qb.q = qb.q.Limit(limit)
+	qb.q = qb.q.Limit(int(limit))
 	return qb
 }
 
@@ -163,7 +178,7 @@ func (qb *FirestoreQueryBuilder) WithOrderBy(orderBy string, dir firestore.Direc
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) Execute() (FirestoreDocs, error) {
+func (qb *FirestoreQueryBuilder) GetAll() (FirestoreDocs, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
 	defer cancel()
 
@@ -179,27 +194,24 @@ func (qb *FirestoreQueryBuilder) Execute() (FirestoreDocs, error) {
 		if !snapshot.Exists() {
 			continue
 		}
-		data[i] = snapshot.Data()
+		data[i] = FirestoreDoc{
+			Path: snapshot.Ref.Path,
+			Data: snapshot.Data(),
+		}
 	}
 
 	return data, nil
 }
 
+func (d FirestoreDocs) GetData() []map[string]any {
+	data := make([]map[string]any, len(d))
+	for i, doc := range d {
+		data[i] = doc.Data
+	}
+
+	return data
+}
+
 func (d FirestoreDocs) ToJSON() (string, error) {
-	jsonData, err := json.Marshal(d)
-	if err != nil {
-		log.Println(err)
-		return "", errors.New("failed to serialize firestore docs to json")
-	}
-
-	if utils.IsInteractiveTTY() {
-		jsonString, err := utils.PrettifyJSON(jsonData)
-		if err != nil {
-			jsonString = string(jsonData)
-		}
-
-		return jsonString, nil
-	}
-
-	return string(jsonData), nil
+	return utils.ToJSON(d.GetData())
 }
