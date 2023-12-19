@@ -1,11 +1,13 @@
 package cmd
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
 	"os"
+	"time"
 
 	"github.com/steschwa/fq/firebase"
 	"github.com/urfave/cli/v2"
@@ -16,7 +18,12 @@ type (
 		projectID  string
 		collection string
 		data       []firebase.FirestoreInsertData
+		timeout    uint
 	}
+)
+
+const (
+	defaultInsertCmdTimeout uint = 30
 )
 
 var (
@@ -42,6 +49,11 @@ if there is no 'id' property, then an auto generated id is used`,
 					}
 					return nil
 				},
+			},
+			&cli.UintFlag{
+				Name:        "timeout",
+				Usage:       "timeout in `seconds`",
+				DefaultText: fmt.Sprintf("%d s", defaultInsertCmdTimeout),
 			},
 		},
 		Action: func(c *cli.Context) error {
@@ -85,7 +97,10 @@ if there is no 'id' property, then an auto generated id is used`,
 				Collection(params.collection)
 
 			slog.Info("inserting data ...")
-			ib.InsertMany(params.data)
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(params.timeout))
+			defer cancel()
+			errs := ib.InsertMany(ctx, params.data)
+			errs.Log()
 			slog.Info("inserting data ... done")
 
 			return nil
@@ -94,8 +109,8 @@ if there is no 'id' property, then an auto generated id is used`,
 )
 
 func createInsertCmdParams(c *cli.Context) (insertCmdParams, error) {
-	collection := c.String(firestoreCollectionName)
-	projectID := c.String(firebaseProjectName)
+	collection := c.String(firestoreCollectionFlagName)
+	projectID := c.String(firebaseProjectFlagName)
 
 	filePath := c.String("file")
 	var insertData []firebase.FirestoreInsertData
@@ -119,12 +134,18 @@ func createInsertCmdParams(c *cli.Context) (insertCmdParams, error) {
 		return insertCmdParams{}, errors.New("failed to load insert data")
 	}
 
+	timeout := c.Uint("timeout")
+	if timeout == 0 {
+		timeout = defaultInsertCmdTimeout
+	}
+
 	slog.Info(fmt.Sprintf("parsed %d items", len(insertData)))
 
 	return insertCmdParams{
 		projectID:  projectID,
 		collection: collection,
 		data:       insertData,
+		timeout:    timeout,
 	}, nil
 }
 

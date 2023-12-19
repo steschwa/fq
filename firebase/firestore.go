@@ -145,7 +145,8 @@ type (
 	}
 	FirestoreDocs []FirestoreDoc
 
-	FirestoreInsertData map[string]any
+	FirestoreInsertData     map[string]any
+	FirestoreInsertErrorMap map[string]int
 )
 
 func NewQueryBuilder(client *firestore.Client) *FirestoreQueryBuilder {
@@ -217,10 +218,10 @@ func (ib *FirestoreInsertBuilder) Collection(collectionPath string) *FirestoreIn
 	return ib
 }
 
-func (ib *FirestoreInsertBuilder) InsertMany(data []FirestoreInsertData) {
-	bw := ib.c.BulkWriter(context.Background())
+func (ib *FirestoreInsertBuilder) InsertMany(ctx context.Context, data []FirestoreInsertData) FirestoreInsertErrorMap {
+	bw := ib.c.BulkWriter(ctx)
 
-	jobsCh := make(chan struct{})
+	jobsCh := make(chan error)
 	jobsCount := 0
 
 	for _, item := range data {
@@ -233,14 +234,13 @@ func (ib *FirestoreInsertBuilder) InsertMany(data []FirestoreInsertData) {
 		jobsCount++
 		go func(job *firestore.BulkWriterJob) {
 			_, err := job.Results()
-			if err != nil {
-				log.Println(err)
-			}
-			jobsCh <- struct{}{}
+			jobsCh <- err
 		}(job)
 	}
 
 	bw.Flush()
+
+	errs := map[string]int{}
 
 	finished := 0
 	for {
@@ -249,10 +249,15 @@ func (ib *FirestoreInsertBuilder) InsertMany(data []FirestoreInsertData) {
 		}
 
 		select {
-		case <-jobsCh:
+		case err := <-jobsCh:
 			finished++
+			if err != nil {
+				errs[err.Error()]++
+			}
 		}
 	}
+
+	return errs
 }
 
 func (d FirestoreDocs) GetData() []map[string]any {
@@ -279,5 +284,11 @@ func (d FirestoreInsertData) GetDoc(collectionRef *firestore.CollectionRef) *fir
 		return collectionRef.Doc(id)
 	default:
 		return collectionRef.NewDoc()
+	}
+}
+
+func (errs FirestoreInsertErrorMap) Log() {
+	for err, count := range errs {
+		slog.Error(err, "count", fmt.Sprint(count))
 	}
 }
