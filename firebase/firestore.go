@@ -4,9 +4,8 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
-	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/alecthomas/participle/v2"
@@ -19,7 +18,7 @@ func InitFirestoreClient(projectID string) (*firestore.Client, error) {
 
 	c, err := firestore.NewClient(context.Background(), projectID)
 	if err != nil {
-		log.Println(err)
+		slog.Error(err.Error())
 		return nil, errors.New("failed to create firestore client")
 	}
 
@@ -168,7 +167,7 @@ func (qb *FirestoreQueryBuilder) WithWheres(wheres []*FirestoreWhere) *Firestore
 }
 
 func (qb *FirestoreQueryBuilder) WithLimit(limit uint) *FirestoreQueryBuilder {
-	if limit <= 0 {
+	if limit == 0 {
 		return qb
 	}
 
@@ -185,14 +184,11 @@ func (qb *FirestoreQueryBuilder) WithOrderBy(orderBy string, dir firestore.Direc
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) GetAll() (FirestoreDocs, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
-	defer cancel()
-
+func (qb *FirestoreQueryBuilder) GetAll(ctx context.Context) (FirestoreDocs, error) {
 	docs := qb.q.Documents(ctx)
 	snapshots, err := docs.GetAll()
 	if err != nil {
-		log.Println(err)
+		slog.Error(err.Error())
 		return nil, errors.New("failed to retrieve documents")
 	}
 

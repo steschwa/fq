@@ -1,7 +1,9 @@
 package cmd
 
 import (
+	"context"
 	"fmt"
+	"time"
 
 	"cloud.google.com/go/firestore"
 	"github.com/steschwa/fq/firebase"
@@ -16,17 +18,21 @@ type (
 		limit      uint
 		orderBy    string
 		orderDir   firestore.Direction
+		timeout    uint
 	}
 )
 
 const (
-	firebaseProjectName     = "project"
-	firestoreCollectionName = "collection"
+	firebaseProjectFlagName = "project"
+
+	firestoreCollectionFlagName = "collection"
+
+	defaultQueryCmdTimeout uint = 30
 )
 
 var (
 	firebaseProjectIDFlag = &cli.StringFlag{
-		Name:     firebaseProjectName,
+		Name:     firebaseProjectFlagName,
 		Aliases:  []string{"p"},
 		Usage:    "gcloud project id",
 		EnvVars:  []string{"GCLOUD_PROJECT", "GCLOUD_PROJECT_ID"},
@@ -34,9 +40,9 @@ var (
 	}
 
 	firestoreCollectionPathFlag = &cli.StringFlag{
-		Name:    firestoreCollectionName,
+		Name:    firestoreCollectionFlagName,
 		Aliases: []string{"c"},
-		Usage:   "path to firestore collection separated with dashes (/)",
+		Usage:   "`path` to firestore collection separated with dashes (/)",
 		Action: func(ctx *cli.Context, s string) error {
 			return firebase.ValidateFirestoreCollectionPath(s)
 		},
@@ -45,7 +51,7 @@ var (
 	firestoreWhereFlag = &cli.StringSliceFlag{
 		Name:    "where",
 		Aliases: []string{"w"},
-		Usage:   "documents filter. must be in format '{property-path} {operator} {value}'. can be used multiple times",
+		Usage:   "documents `filter`. must be in format '{property-path} {operator} {value}'. can be used multiple times",
 		Action: func(ctx *cli.Context, s []string) error {
 			for _, where := range s {
 				err := firebase.ValidateFirestoreWhere(where)
@@ -80,6 +86,11 @@ var (
 				Usage:       "order in descending order",
 				DefaultText: "false - ascending",
 			},
+			&cli.UintFlag{
+				Name:        "timeout",
+				Usage:       "timeout in `seconds`",
+				DefaultText: fmt.Sprintf("%d s", defaultQueryCmdTimeout),
+			},
 		},
 		Action: func(c *cli.Context) error {
 			params := createQueryCmdParams(c)
@@ -91,11 +102,14 @@ var (
 			defer client.Close()
 
 			qb := firebase.NewQueryBuilder(client)
+
+			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(params.timeout))
+			defer cancel()
 			docs, err := qb.Collection(params.collection).
 				WithWheres(params.where).
 				WithLimit(params.limit).
 				WithOrderBy(params.orderBy, params.orderDir).
-				GetAll()
+				GetAll(ctx)
 			if err != nil {
 				return err
 			}
@@ -112,8 +126,8 @@ var (
 )
 
 func createQueryCmdParams(c *cli.Context) queryCmdParams {
-	collection := c.String(firestoreCollectionName)
-	projectID := c.String(firebaseProjectName)
+	collection := c.String(firestoreCollectionFlagName)
+	projectID := c.String(firebaseProjectFlagName)
 
 	wheresRaw := c.StringSlice("where")
 	wheres := make([]*firebase.FirestoreWhere, len(wheresRaw))
@@ -133,6 +147,11 @@ func createQueryCmdParams(c *cli.Context) queryCmdParams {
 		orderDir = firestore.Asc
 	}
 
+	timeout := c.Uint("timeout")
+	if timeout == 0 {
+		timeout = defaultQueryCmdTimeout
+	}
+
 	return queryCmdParams{
 		projectID:  projectID,
 		collection: collection,
@@ -140,5 +159,6 @@ func createQueryCmdParams(c *cli.Context) queryCmdParams {
 		limit:      limit,
 		orderBy:    order,
 		orderDir:   orderDir,
+		timeout:    timeout,
 	}
 }
