@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log/slog"
 	"os"
 
 	"github.com/steschwa/fq/cmd"
@@ -14,11 +14,12 @@ func main() {
 		Usage: "firebase query tool",
 		Commands: []*cli.Command{
 			cmd.QueryCmd,
+			cmd.InsertCmd,
 		},
 	}
 
 	if err := app.Run(os.Args); err != nil {
-		fmt.Println(err)
+		slog.Error(err.Error())
 		os.Exit(1)
 	}
 }

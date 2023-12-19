@@ -11,11 +11,15 @@ func setupFirebase(projectID string) {
 	}
 }
 
+const (
+	FirebaseEmulatorHubEnvName   = "FIREBASE_EMULATOR_HUB"
+	FirestoreEmulatorHostEnvName = "FIRESTORE_EMULATOR_HOST"
+)
+
 func setFirebaseEmulatorEnv() {
-	envMap := map[string]string{
-		"FIREBASE_EMULATOR_HUB":   "localhost:4000",
-		"FIRESTORE_EMULATOR_HOST": "localhost:8080",
-	}
+	envMap := map[string]string{}
+	envMap[FirebaseEmulatorHubEnvName] = "localhost:4400"
+	envMap[FirestoreEmulatorHostEnvName] = "localhost:8080"
 
 	for key, val := range envMap {
 		if envVal := os.Getenv(key); envVal == "" {

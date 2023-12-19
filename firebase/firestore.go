@@ -135,11 +135,18 @@ type (
 		q firestore.Query
 	}
 
+	FirestoreInsertBuilder struct {
+		c   *firestore.Client
+		ref *firestore.CollectionRef
+	}
+
 	FirestoreDoc struct {
 		Path string
 		Data map[string]any
 	}
 	FirestoreDocs []FirestoreDoc
+
+	FirestoreInsertData map[string]any
 )
 
 func NewQueryBuilder(client *firestore.Client) *FirestoreQueryBuilder {
@@ -148,8 +155,8 @@ func NewQueryBuilder(client *firestore.Client) *FirestoreQueryBuilder {
 	}
 }
 
-func (qb *FirestoreQueryBuilder) Collection(path string) *FirestoreQueryBuilder {
-	qb.q = qb.c.Collection(path).Query
+func (qb *FirestoreQueryBuilder) Collection(collectionPath string) *FirestoreQueryBuilder {
+	qb.q = qb.c.Collection(collectionPath).Query
 	return qb
 }
 
@@ -203,6 +210,55 @@ func (qb *FirestoreQueryBuilder) GetAll() (FirestoreDocs, error) {
 	return data, nil
 }
 
+func NewInsertBuilder(client *firestore.Client) *FirestoreInsertBuilder {
+	return &FirestoreInsertBuilder{
+		c: client,
+	}
+}
+
+func (ib *FirestoreInsertBuilder) Collection(collectionPath string) *FirestoreInsertBuilder {
+	ib.ref = ib.c.Collection(collectionPath)
+	return ib
+}
+
+func (ib *FirestoreInsertBuilder) InsertMany(data []FirestoreInsertData) {
+	bw := ib.c.BulkWriter(context.Background())
+
+	jobsCh := make(chan struct{})
+	jobsCount := 0
+
+	for _, item := range data {
+		doc := item.GetDoc(ib.ref)
+		job, err := bw.Set(doc, item)
+		if err != nil {
+			continue
+		}
+
+		jobsCount++
+		go func(job *firestore.BulkWriterJob) {
+			_, err := job.Results()
+			if err != nil {
+				log.Println(err)
+			}
+			jobsCh <- struct{}{}
+		}(job)
+	}
+
+	bw.Flush()
+
+	finished := 0
+	for {
+		if finished == jobsCount {
+			break
+		}
+
+		select {
+		case <-jobsCh:
+			finished++
+		}
+	}
+}
+
 func (d FirestoreDocs) GetData() []map[string]any {
 	data := make([]map[string]any, len(d))
 	for i, doc := range d {
@@ -214,4 +270,18 @@ func (d FirestoreDocs) GetData() []map[string]any {
 
 func (d FirestoreDocs) ToJSON() (string, error) {
 	return utils.ToJSON(d.GetData())
+}
+
+func (d FirestoreInsertData) GetDoc(collectionRef *firestore.CollectionRef) *firestore.DocumentRef {
+	id, ok := d["id"]
+	if !ok {
+		return collectionRef.NewDoc()
+	}
+
+	switch id := id.(type) {
+	case string:
+		return collectionRef.Doc(id)
+	default:
+		return collectionRef.NewDoc()
+	}
 }

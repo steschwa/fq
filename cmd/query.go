@@ -19,9 +19,14 @@ type (
 	}
 )
 
+const (
+	firebaseProjectName     = "project"
+	firestoreCollectionName = "collection"
+)
+
 var (
 	firebaseProjectIDFlag = &cli.StringFlag{
-		Name:     "project",
+		Name:     firebaseProjectName,
 		Aliases:  []string{"p"},
 		Usage:    "gcloud project id",
 		EnvVars:  []string{"GCLOUD_PROJECT", "GCLOUD_PROJECT_ID"},
@@ -29,7 +34,7 @@ var (
 	}
 
 	firestoreCollectionPathFlag = &cli.StringFlag{
-		Name:    "collection",
+		Name:    firestoreCollectionName,
 		Aliases: []string{"c"},
 		Usage:   "path to firestore collection separated with dashes (/)",
 		Action: func(ctx *cli.Context, s string) error {
@@ -107,8 +112,8 @@ var (
 )
 
 func createQueryCmdParams(c *cli.Context) queryCmdParams {
-	collection := c.String("collection")
-	projectID := c.String("project")
+	collection := c.String(firestoreCollectionName)
+	projectID := c.String(firebaseProjectName)
 
 	wheresRaw := c.StringSlice("where")
 	wheres := make([]*firebase.FirestoreWhere, len(wheresRaw))
