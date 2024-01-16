@@ -7,25 +7,25 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"github.com/steschwa/fq/firebase"
+	"github.com/steschwa/fq/utils"
 	"github.com/urfave/cli/v2"
 )
 
 type (
 	queryCmdParams struct {
-		projectID  string
-		collection string
-		where      []*firebase.FirestoreWhere
-		limit      uint
-		orderBy    string
-		orderDir   firestore.Direction
-		timeout    uint
+		projectID string
+		path      string
+		where     []*firebase.FirestoreWhere
+		limit     uint
+		orderBy   string
+		orderDir  firestore.Direction
+		timeout   uint
 	}
 )
 
 const (
 	firebaseProjectFlagName = "project"
-
-	firestoreCollectionFlagName = "collection"
+	firestorePathFlagName   = "path"
 
 	defaultQueryCmdTimeout uint = 30
 )
@@ -39,13 +39,9 @@ var (
 		Required: true,
 	}
 
-	firestoreCollectionPathFlag = &cli.StringFlag{
-		Name:    firestoreCollectionFlagName,
-		Aliases: []string{"c"},
-		Usage:   "`path` to firestore collection separated with dashes (/)",
-		Action: func(ctx *cli.Context, s string) error {
-			return firebase.ValidateFirestoreCollectionPath(s)
-		},
+	firestorePathFlag = &cli.StringFlag{
+		Name:  firestorePathFlagName,
+		Usage: "`path` to firestore collection or document separated with dashes (/)",
 	}
 
 	firestoreWhereFlag = &cli.StringSliceFlag{
@@ -74,7 +70,7 @@ var (
 		Usage: "load data from firestore",
 		Flags: []cli.Flag{
 			firebaseProjectIDFlag,
-			firestoreCollectionPathFlag,
+			firestorePathFlag,
 			firestoreWhereFlag,
 			firestoreLimitFlag,
 			&cli.StringFlag{
@@ -101,20 +97,28 @@ var (
 			}
 			defer client.Close()
 
-			qb := firebase.NewQueryBuilder(client)
-
 			ctx, cancel := context.WithTimeout(context.Background(), time.Second*time.Duration(params.timeout))
 			defer cancel()
-			docs, err := qb.Collection(params.collection).
-				WithWheres(params.where).
-				WithLimit(params.limit).
-				WithOrderBy(params.orderBy, params.orderDir).
-				GetAll(ctx)
+
+			var serializable utils.JSONSerializable
+
+			if firebase.IsFirestoreCollectionPath(params.path) {
+				qb := firebase.NewQueryCollectionBuilder(client)
+				serializable, err = qb.Collection(params.path).
+					WithWheres(params.where).
+					WithLimit(params.limit).
+					WithOrderBy(params.orderBy, params.orderDir).
+					GetAll(ctx)
+			} else if firebase.IsFirestoreDocumentPath(params.path) {
+				qb := firebase.NewQueryDocumentBuilder(client)
+				serializable, err = qb.Document(params.path).Get(ctx)
+			}
+
 			if err != nil {
 				return err
 			}
 
-			j, err := docs.ToJSON()
+			j, err := serializable.ToJSON()
 			if err != nil {
 				return err
 			}
@@ -126,8 +130,8 @@ var (
 )
 
 func createQueryCmdParams(c *cli.Context) queryCmdParams {
-	collection := c.String(firestoreCollectionFlagName)
 	projectID := c.String(firebaseProjectFlagName)
+	path := c.String(firestorePathFlagName)
 
 	wheresRaw := c.StringSlice("where")
 	wheres := make([]*firebase.FirestoreWhere, len(wheresRaw))
@@ -153,12 +157,12 @@ func createQueryCmdParams(c *cli.Context) queryCmdParams {
 	}
 
 	return queryCmdParams{
-		projectID:  projectID,
-		collection: collection,
-		where:      wheres,
-		limit:      limit,
-		orderBy:    order,
-		orderDir:   orderDir,
-		timeout:    timeout,
+		projectID: projectID,
+		path:      path,
+		where:     wheres,
+		limit:     limit,
+		orderBy:   order,
+		orderDir:  orderDir,
+		timeout:   timeout,
 	}
 }

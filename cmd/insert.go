@@ -24,9 +24,20 @@ type (
 
 const (
 	defaultInsertCmdTimeout uint = 30
+
+	firestoreCollectionFlagName = "collection"
 )
 
 var (
+	firestoreCollectionPathFlag = &cli.StringFlag{
+		Name:    firestoreCollectionFlagName,
+		Aliases: []string{"c"},
+		Usage:   "`path` to firestore collection separated with dashes (/)",
+		Action: func(ctx *cli.Context, s string) error {
+			return firebase.ValidateFirestoreCollectionPath(s)
+		},
+	}
+
 	InsertCmd = &cli.Command{
 		Name:  "insert",
 		Usage: "insert data into firestore",

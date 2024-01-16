@@ -8,6 +8,12 @@ import (
 	"strings"
 )
 
+type (
+	JSONSerializable interface {
+		ToJSON() (string, error)
+	}
+)
+
 func ToJSON(data any) (string, error) {
 	jsonData, err := json.Marshal(data)
 	if err != nil {

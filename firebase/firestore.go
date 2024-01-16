@@ -11,6 +11,8 @@ import (
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/steschwa/fq/utils"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 func InitFirestoreClient(projectID string) (*firestore.Client, error) {
@@ -128,10 +130,32 @@ func ValidateFirestoreCollectionPath(path string) error {
 	return nil
 }
 
+func IsFirestoreCollectionPath(path string) bool {
+	parts := getFirestorePathParts(path)
+	if len(parts) == 0 {
+		return false
+	}
+
+	return len(parts)%2 == 1
+}
+
+func IsFirestoreDocumentPath(path string) bool {
+	parts := getFirestorePathParts(path)
+	if len(parts) == 0 {
+		return false
+	}
+
+	return len(parts)%2 == 0
+}
+
 type (
-	FirestoreQueryBuilder struct {
-		c *firestore.Client
-		q firestore.Query
+	FirestoreQueryCollectionBuilder struct {
+		c     *firestore.Client
+		query firestore.Query
+	}
+	FirestoreQueryDocumentBuilder struct {
+		c      *firestore.Client
+		docRef *firestore.DocumentRef
 	}
 
 	FirestoreInsertBuilder struct {
@@ -149,44 +173,44 @@ type (
 	FirestoreInsertErrorMap map[string]int
 )
 
-func NewQueryBuilder(client *firestore.Client) *FirestoreQueryBuilder {
-	return &FirestoreQueryBuilder{
+func NewQueryCollectionBuilder(client *firestore.Client) *FirestoreQueryCollectionBuilder {
+	return &FirestoreQueryCollectionBuilder{
 		c: client,
 	}
 }
 
-func (qb *FirestoreQueryBuilder) Collection(collectionPath string) *FirestoreQueryBuilder {
-	qb.q = qb.c.Collection(collectionPath).Query
+func (qb *FirestoreQueryCollectionBuilder) Collection(path string) *FirestoreQueryCollectionBuilder {
+	qb.query = qb.c.Collection(path).Query
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) WithWheres(wheres []*FirestoreWhere) *FirestoreQueryBuilder {
+func (qb *FirestoreQueryCollectionBuilder) WithWheres(wheres []*FirestoreWhere) *FirestoreQueryCollectionBuilder {
 	for _, where := range wheres {
-		qb.q = qb.q.Where(where.Path, where.GetOperator(), where.GetValue())
+		qb.query = qb.query.Where(where.Path, where.GetOperator(), where.GetValue())
 	}
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) WithLimit(limit uint) *FirestoreQueryBuilder {
+func (qb *FirestoreQueryCollectionBuilder) WithLimit(limit uint) *FirestoreQueryCollectionBuilder {
 	if limit == 0 {
 		return qb
 	}
 
-	qb.q = qb.q.Limit(int(limit))
+	qb.query = qb.query.Limit(int(limit))
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) WithOrderBy(orderBy string, dir firestore.Direction) *FirestoreQueryBuilder {
+func (qb *FirestoreQueryCollectionBuilder) WithOrderBy(orderBy string, dir firestore.Direction) *FirestoreQueryCollectionBuilder {
 	if orderBy == "" {
 		return qb
 	}
 
-	qb.q = qb.q.OrderBy(orderBy, dir)
+	qb.query = qb.query.OrderBy(orderBy, dir)
 	return qb
 }
 
-func (qb *FirestoreQueryBuilder) GetAll(ctx context.Context) (FirestoreDocs, error) {
-	docs := qb.q.Documents(ctx)
+func (qb *FirestoreQueryCollectionBuilder) GetAll(ctx context.Context) (FirestoreDocs, error) {
+	docs := qb.query.Documents(ctx)
 	snapshots, err := docs.GetAll()
 	if err != nil {
 		slog.Error(err.Error())
@@ -205,6 +229,32 @@ func (qb *FirestoreQueryBuilder) GetAll(ctx context.Context) (FirestoreDocs, err
 	}
 
 	return data, nil
+}
+
+func NewQueryDocumentBuilder(client *firestore.Client) *FirestoreQueryDocumentBuilder {
+	return &FirestoreQueryDocumentBuilder{
+		c: client,
+	}
+}
+
+func (b *FirestoreQueryDocumentBuilder) Document(path string) *FirestoreQueryDocumentBuilder {
+	b.docRef = b.c.Doc(path)
+	return b
+}
+
+func (b *FirestoreQueryDocumentBuilder) Get(ctx context.Context) (FirestoreDoc, error) {
+	snapshot, err := b.docRef.Get(ctx)
+	if status.Code(err) == codes.NotFound {
+		return FirestoreDoc{}, fmt.Errorf("document %s does not exist", b.docRef.Path)
+	} else if err != nil {
+		slog.Error(err.Error())
+		return FirestoreDoc{}, fmt.Errorf("failed to retrieve document %s", b.docRef.Path)
+	}
+
+	return FirestoreDoc{
+		Path: snapshot.Ref.Path,
+		Data: snapshot.Data(),
+	}, nil
 }
 
 func NewInsertBuilder(client *firestore.Client) *FirestoreInsertBuilder {
@@ -258,6 +308,10 @@ func (ib *FirestoreInsertBuilder) InsertMany(ctx context.Context, data []Firesto
 	}
 
 	return errs
+}
+
+func (d FirestoreDoc) ToJSON() (string, error) {
+	return utils.ToJSON(d.Data)
 }
 
 func (d FirestoreDocs) GetData() []map[string]any {
