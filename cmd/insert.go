@@ -34,7 +34,15 @@ var (
 		Aliases: []string{"c"},
 		Usage:   "`path` to firestore collection separated with dashes (/)",
 		Action: func(ctx *cli.Context, s string) error {
-			return firebase.ValidateFirestoreCollectionPath(s)
+			pathType, err := firebase.GetFirestorePathType(s)
+			if err != nil {
+				return err
+			}
+
+			if pathType == firebase.FirestorePathTypeCollection {
+				return nil
+			}
+			return errors.New("only collection paths (containing an uneven amount of parts separated by /) are allowed")
 		},
 	}
 

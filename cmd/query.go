@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -42,6 +43,20 @@ var (
 	firestorePathFlag = &cli.StringFlag{
 		Name:  firestorePathFlagName,
 		Usage: "`path` to firestore collection or document separated with dashes (/)",
+		Action: func(ctx *cli.Context, s string) error {
+			pathType, err := firebase.GetFirestorePathType(s)
+			if err != nil {
+				return err
+			}
+
+			if pathType == firebase.FirestorePathTypeCollection {
+				return nil
+			}
+			if pathType == firebase.FirestorePathTypeDocument {
+				return nil
+			}
+			return errors.New("could not validate path. please provide a) a collection path (containing an uneven amount of parts separated by /) or b) document path (containing an even amount of parts separated by /)")
+		},
 	}
 
 	firestoreWhereFlag = &cli.StringSliceFlag{

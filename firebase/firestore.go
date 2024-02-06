@@ -118,16 +118,33 @@ func getFirestorePathParts(path string) []string {
 	return strings.Split(path, "/")
 }
 
-func ValidateFirestoreCollectionPath(path string) error {
-	parts := getFirestorePathParts(path)
-	if len(parts) == 0 {
-		return errors.New("path is empty")
+type (
+	FirestorePathType int
+)
+
+const (
+	FirestorePathTypeCollection FirestorePathType = iota
+	FirestorePathTypeDocument
+)
+
+func GetFirestorePathType(path string) (FirestorePathType, error) {
+	if path == "" {
+		return FirestorePathTypeCollection, errors.New("path can't be empty")
 	}
-	if len(parts)%2 == 0 {
-		return errors.New("collection paths must contain an uneven amount of parts")
+	if strings.HasPrefix(path, "/") {
+		return FirestorePathTypeCollection, errors.New("path can't start with a /")
+	}
+	if strings.HasSuffix(path, "/") {
+		return FirestorePathTypeCollection, errors.New("path can't end with a /")
 	}
 
-	return nil
+	if IsFirestoreCollectionPath(path) {
+		return FirestorePathTypeCollection, nil
+	} else if IsFirestoreDocumentPath(path) {
+		return FirestorePathTypeDocument, nil
+	}
+
+	return FirestorePathTypeCollection, errors.New("unknown firestore path type")
 }
 
 func IsFirestoreCollectionPath(path string) bool {
