@@ -14,7 +14,6 @@ func main() {
 		Usage: "firebase query tool",
 		Commands: []*cli.Command{
 			cmd.QueryCmd,
-			cmd.InsertCmd,
 		},
 	}
 
