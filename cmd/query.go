@@ -43,7 +43,7 @@ var (
 	firestorePathFlag = &cli.StringFlag{
 		Name:  firestorePathFlagName,
 		Usage: "`path` to firestore collection or document separated with dashes (/)",
-		Action: func(ctx *cli.Context, s string) error {
+		Action: func(_ *cli.Context, s string) error {
 			pathType, err := firebase.GetFirestorePathType(s)
 			if err != nil {
 				return err
@@ -63,7 +63,7 @@ var (
 		Name:    "where",
 		Aliases: []string{"w"},
 		Usage:   "documents `filter`. must be in format '{property-path} {operator} {value}'. can be used multiple times",
-		Action: func(ctx *cli.Context, s []string) error {
+		Action: func(_ *cli.Context, s []string) error {
 			for _, where := range s {
 				err := firebase.ValidateFirestoreWhere(where)
 				if err != nil {
