@@ -28,6 +28,7 @@ var (
 	orderBy           string
 	orderByDescending bool
 	timeout           uint
+	count             bool
 )
 
 const (
@@ -42,6 +43,7 @@ func init() {
 	rootCmd.Flags().StringVar(&orderBy, "orderby", "", "order-by column (default no ordering)")
 	rootCmd.Flags().BoolVar(&orderByDescending, "desc", false, "reverse sort direction (default false - ascending)")
 	rootCmd.Flags().UintVar(&timeout, "timeout", defaultTimeout, "timeout in seconds")
+	rootCmd.Flags().BoolVar(&count, "count", false, "return count instead of documents")
 
 	rootCmd.MarkFlagRequired("project")
 	rootCmd.MarkFlagRequired("path")
@@ -91,11 +93,17 @@ func run(*cobra.Command, []string) {
 			}
 		}
 
-		serializable, err = queryBuilder.Collection(path).
+		queryBuilder.Collection(path).
 			WithWheres(firestoreWheres).
 			WithLimit(limit).
-			WithOrderBy(orderBy, orderDirection).
-			GetAll(ctx)
+			WithOrderBy(orderBy, orderDirection)
+
+		if count {
+			serializable, err = queryBuilder.Count(ctx)
+		} else {
+			serializable, err = queryBuilder.GetAll(ctx)
+		}
+
 	} else if firebase.IsFirestoreDocumentPath(path) {
 		queryBuilder := firebase.NewQueryDocumentBuilder(client)
 		serializable, err = queryBuilder.Document(path).Get(ctx)

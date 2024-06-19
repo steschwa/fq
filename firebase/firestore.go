@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"cloud.google.com/go/firestore"
+	"cloud.google.com/go/firestore/apiv1/firestorepb"
 	"github.com/alecthomas/participle/v2"
 	"github.com/alecthomas/participle/v2/lexer"
 	"github.com/steschwa/fq/utils"
@@ -188,6 +189,8 @@ type (
 
 	FirestoreInsertData     map[string]any
 	FirestoreInsertErrorMap map[string]int
+
+	FirestoreCount int
 )
 
 func NewQueryCollectionBuilder(client *firestore.Client) *FirestoreQueryCollectionBuilder {
@@ -224,6 +227,26 @@ func (qb *FirestoreQueryCollectionBuilder) WithOrderBy(orderBy string, dir fires
 
 	qb.query = qb.query.OrderBy(orderBy, dir)
 	return qb
+}
+
+func (qb *FirestoreQueryCollectionBuilder) Count(ctx context.Context) (FirestoreCount, error) {
+	q := qb.query.NewAggregationQuery().WithCount("count")
+	res, err := q.Get(ctx)
+	if err != nil {
+		return 0, fmt.Errorf("getting count query: %v", err)
+	}
+
+	count, ok := res["count"]
+	if !ok {
+		return 0, fmt.Errorf("extracting count from aggreagte result: %+v", res)
+	}
+
+	val, ok := count.(*firestorepb.Value)
+	if !ok {
+		return 0, fmt.Errorf("converting count to firestore value. received: %T", count)
+	}
+
+	return FirestoreCount(val.GetIntegerValue()), nil
 }
 
 func (qb *FirestoreQueryCollectionBuilder) GetAll(ctx context.Context) (FirestoreDocs, error) {
@@ -362,4 +385,8 @@ func (errs FirestoreInsertErrorMap) Log() {
 	for err, count := range errs {
 		slog.Error(err, "count", fmt.Sprint(count))
 	}
+}
+
+func (c FirestoreCount) ToJSON() (string, error) {
+	return fmt.Sprintf("%d", c), nil
 }
