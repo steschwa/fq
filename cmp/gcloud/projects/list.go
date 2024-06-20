@@ -2,6 +2,7 @@ package projects
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/carapace-sh/carapace"
 )
@@ -42,5 +43,5 @@ func ActionProjects() carapace.Action {
 		}
 
 		return carapace.ActionValuesDescribed(values...)
-	})
+	}).Cache(time.Second * 30)
 }
