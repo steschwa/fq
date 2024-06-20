@@ -10,6 +10,7 @@ import (
 	"cloud.google.com/go/firestore"
 	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
+	"github.com/steschwa/fq/cmp/gcloud/projects"
 	"github.com/steschwa/fq/firebase"
 	"github.com/steschwa/fq/utils"
 )
@@ -50,6 +51,10 @@ func init() {
 
 	rootCmd.MarkFlagRequired("project")
 	rootCmd.MarkFlagRequired("path")
+
+	carapace.Gen(rootCmd).FlagCompletion(carapace.ActionMap{
+		"project": projects.ActionProjects(),
+	})
 }
 
 func validateFlags() error {
