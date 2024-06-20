@@ -5,6 +5,7 @@ go 1.21.5
 require (
 	cloud.google.com/go/firestore v1.14.0
 	github.com/alecthomas/participle/v2 v2.1.1
+	github.com/carapace-sh/carapace v1.0.0
 	github.com/spf13/cobra v1.8.0
 	golang.org/x/term v0.15.0
 	google.golang.org/grpc v1.56.1
@@ -15,6 +16,7 @@ require (
 	cloud.google.com/go/compute v1.19.3 // indirect
 	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	cloud.google.com/go/longrunning v0.5.0 // indirect
+	github.com/carapace-sh/carapace-shlex v1.0.0 // indirect
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
@@ -38,4 +40,5 @@ require (
 	google.golang.org/genproto/googleapis/api v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20230530153820-e85fd2cbaebc // indirect
 	google.golang.org/protobuf v1.31.0 // indirect
+	gopkg.in/yaml.v3 v3.0.1 // indirect
 )

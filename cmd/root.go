@@ -8,6 +8,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 	"github.com/steschwa/fq/firebase"
 	"github.com/steschwa/fq/utils"
@@ -36,12 +37,14 @@ const (
 )
 
 func init() {
-	rootCmd.Flags().StringVarP(&projectID, "project", "p", "", "gcloud project id")
-	rootCmd.Flags().StringVar(&path, "path", "", "`path` to firestore collection or document separated with dashes (/)")
-	rootCmd.Flags().StringArrayVarP(&where, "where", "w", nil, "documents `filter`. must be in format '{property-path} {operator} {value}'. can be used multiple times")
-	rootCmd.Flags().UintVar(&limit, "limit", 0, "maximum documents to return (default no limit)")
-	rootCmd.Flags().StringVar(&orderBy, "orderby", "", "order-by column (default no ordering)")
-	rootCmd.Flags().BoolVar(&orderByDescending, "desc", false, "reverse sort direction (default false - ascending)")
+	carapace.Gen(rootCmd).Standalone()
+
+	rootCmd.Flags().StringVar(&projectID, "project", "", "gcloud project id")
+	rootCmd.Flags().StringVar(&path, "path", "", "path to firestore collection or document separated with dashes (/)")
+	rootCmd.Flags().StringArrayVar(&where, "where", nil, "format: '{property-path} {operator} {value}'")
+	rootCmd.Flags().UintVar(&limit, "limit", 0, "maximum documents to return")
+	rootCmd.Flags().StringVar(&orderBy, "orderby", "", "order-by column")
+	rootCmd.Flags().BoolVar(&orderByDescending, "desc", false, "reverse sort direction")
 	rootCmd.Flags().UintVar(&timeout, "timeout", defaultTimeout, "timeout in seconds")
 	rootCmd.Flags().BoolVar(&count, "count", false, "return count instead of documents")
 
@@ -125,7 +128,6 @@ func run(*cobra.Command, []string) {
 
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Printf("command failed: %v\n", err)
 		os.Exit(1)
 	}
 }
