@@ -5,7 +5,7 @@ clean:
     rm ./fst
 
 build: clean
-    go build -ldflags '-w -s' -o ./fst 
+    go build -ldflags '-s' -trimpath -o ./fst 
 
 install:
     go install .
