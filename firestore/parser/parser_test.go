@@ -28,7 +28,7 @@ func TestParse(t *testing.T) {
 	for _, fixture := range fixtures {
 		w, err := Parse(fixture.source)
 
-		assert.Nil(err)
+		assert.NoError(err)
 
 		assert.Equal(fixture.key, string(w.Key))
 		assert.Equal(fixture.operator, w.Operator.String())
@@ -37,17 +37,15 @@ func TestParse(t *testing.T) {
 	}
 }
 
-func TestParseList(t *testing.T) {
+func TestParseArray(t *testing.T) {
 	assert := assert.New(t)
 
-	w, err := Parse(`rules in ["foo", 10, 5.75, true, false, null]`)
+	v, err := parseValue(`["foo", 10, 5.75, true, false, null]`)
 
-	assert.Nil(err)
-	assert.Equal("rules", string(w.Key))
-	assert.Equal("in", w.Operator.String())
-	assert.IsType(ArrayValue{}, w.Value)
+	assert.NoError(err)
+	assert.IsType(ArrayValue{}, v)
 
-	arr := w.Value.(ArrayValue)
+	arr := v.(ArrayValue)
 
 	assert.IsType(StringValue{}, arr.values[0])
 	assert.IsType(IntValue{}, arr.values[1])
@@ -62,4 +60,44 @@ func TestParseList(t *testing.T) {
 	assert.Equal(true, arr.values[3].Value())
 	assert.Equal(false, arr.values[4].Value())
 	assert.Equal(nil, arr.values[5].Value())
+}
+
+func TestParseOperator(t *testing.T) {
+	assert := assert.New(t)
+
+	o, err := parseOperator("==")
+	assert.NoError(err)
+	assert.Equal(Eq, o)
+
+	o, err = parseOperator("!=")
+	assert.NoError(err)
+	assert.Equal(Neq, o)
+
+	o, err = parseOperator(">")
+	assert.NoError(err)
+	assert.Equal(Gt, o)
+
+	o, err = parseOperator("<")
+	assert.NoError(err)
+	assert.Equal(Lt, o)
+
+	o, err = parseOperator(">=")
+	assert.NoError(err)
+	assert.Equal(Gte, o)
+
+	o, err = parseOperator("<=")
+	assert.NoError(err)
+	assert.Equal(Lte, o)
+
+	o, err = parseOperator("in")
+	assert.NoError(err)
+	assert.Equal(In, o)
+
+	o, err = parseOperator("array-contains-any")
+	assert.NoError(err)
+	assert.Equal(o, ArrayContainsAny)
+
+	o, err = parseOperator("")
+	assert.Error(err)
+	assert.ErrorIs(err, errInvalidOperator)
 }
