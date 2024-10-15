@@ -12,18 +12,17 @@ func TestParse(t *testing.T) {
 	fixtures := []struct {
 		source string
 
-		key        string
-		operator   string
-		valueType  Value
-		valueValue any
+		key      string
+		operator string
+		value    Value
 	}{
-		{source: `foo == "bar"`, key: "foo", operator: "==", valueType: StringValue{}, valueValue: "bar"},
-		{source: `name != 'hi'`, key: "name", operator: "!=", valueType: StringValue{}, valueValue: "hi"},
-		{source: `active == true`, key: "active", operator: "==", valueType: BoolValue{}, valueValue: true},
-		{source: `deleted == false`, key: "deleted", operator: "==", valueType: BoolValue{}, valueValue: false},
-		{source: `age > 30`, key: "age", operator: ">", valueType: IntValue{}, valueValue: 30},
-		{source: `price <= 2.5`, key: "price", operator: "<=", valueType: FloatValue{}, valueValue: 2.5},
-		{source: `date == null`, key: "date", operator: "==", valueType: NullValue{}, valueValue: nil},
+		{source: `foo == "bar"`, key: "foo", operator: "==", value: StringValue{value: "bar"}},
+		{source: `name != 'hi'`, key: "name", operator: "!=", value: StringValue{value: "hi"}},
+		{source: `active == true`, key: "active", operator: "==", value: BoolValue{value: true}},
+		{source: `deleted == false`, key: "deleted", operator: "==", value: BoolValue{value: false}},
+		{source: `age > 30`, key: "age", operator: ">", value: IntValue{value: 30}},
+		{source: `price <= 2.5`, key: "price", operator: "<=", value: FloatValue{value: 2.5}},
+		{source: `date == null`, key: "date", operator: "==", value: NullValue{}},
 	}
 
 	for _, fixture := range fixtures {
@@ -33,8 +32,8 @@ func TestParse(t *testing.T) {
 
 		assert.Equal(fixture.key, string(w.Key))
 		assert.Equal(fixture.operator, w.Operator.String())
-		assert.IsType(fixture.valueType, w.Value)
-		assert.Equal(fixture.valueValue, w.Value.Value())
+		assert.IsType(fixture.value, w.Value)
+		assert.Equal(fixture.value.Value(), w.Value.Value())
 	}
 }
 
