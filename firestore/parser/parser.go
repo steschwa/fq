@@ -6,121 +6,69 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-)
 
-type (
-	KeyPath string
-
-	Operator int
-
-	Value interface {
-		Value() any
-	}
-
-	StringValue struct {
-		value string
-	}
-	IntValue struct {
-		value int
-	}
-	FloatValue struct {
-		value float64
-	}
-	BoolValue struct {
-		value bool
-	}
-	ArrayValue struct {
-		values []Value
-	}
-	NullValue struct{}
-
-	Where struct {
-		Key      KeyPath
-		Operator Operator
-		Value    Value
-	}
-)
-
-const (
-	Eq               Operator = iota + 1 // ==
-	Neq                                  // !=
-	Gt                                   // >
-	Lt                                   // <
-	Gte                                  // >=
-	Lte                                  // <=
-	In                                   // in
-	ArrayContainsAny                     // array-contains-any
+	"github.com/steschwa/fst/firestore"
 )
 
 var (
 	errInvalidOperator = errors.New("invalid operator")
-
-	errNoTokens = errors.New("no tokens")
-)
-
-var (
-	_ Value = StringValue{}
-	_ Value = IntValue{}
-	_ Value = FloatValue{}
-	_ Value = BoolValue{}
-	_ Value = ArrayValue{}
-	_ Value = NullValue{}
+	errNoTokens        = errors.New("no tokens")
 )
 
 var (
 	whereRe = regexp.MustCompile(`^([a-zA-Z._]+) (==|!=|>|<|>=|<=|in|array-contains-any) (.*)$`)
 )
 
-func Parse(source string) (Where, error) {
+func Parse(source string) (firestore.Where, error) {
 	matches := whereRe.FindStringSubmatch(source)
 	if len(matches) != 4 {
-		return Where{}, fmt.Errorf("regex matching where")
+		return firestore.Where{}, fmt.Errorf("regex matching where")
 	}
 
 	key := matches[1]
 
 	op, err := parseOperator(matches[2])
 	if err != nil {
-		return Where{}, fmt.Errorf("parsing operator: %v", err)
+		return firestore.Where{}, fmt.Errorf("parsing operator: %v", err)
 	}
 
 	rawValue := matches[3]
 	value, err := parseValue(rawValue)
 	if err != nil {
-		return Where{}, fmt.Errorf("parsing value: %v", err)
+		return firestore.Where{}, fmt.Errorf("parsing value: %v", err)
 	}
 
-	return Where{
-		Key:      KeyPath(key),
+	return firestore.Where{
+		Key:      firestore.KeyPath(key),
 		Operator: op,
 		Value:    value,
 	}, nil
 }
 
-func parseOperator(op string) (Operator, error) {
+func parseOperator(op string) (firestore.Operator, error) {
 	switch op {
 	case "==":
-		return Eq, nil
+		return firestore.Eq, nil
 	case "!=":
-		return Neq, nil
+		return firestore.Neq, nil
 	case ">":
-		return Gt, nil
+		return firestore.Gt, nil
 	case "<":
-		return Lt, nil
+		return firestore.Lt, nil
 	case ">=":
-		return Gte, nil
+		return firestore.Gte, nil
 	case "<=":
-		return Lte, nil
+		return firestore.Lte, nil
 	case "in":
-		return In, nil
+		return firestore.In, nil
 	case "array-contains-any":
-		return ArrayContainsAny, nil
+		return firestore.ArrayContainsAny, nil
 	default:
-		return Operator(0), errInvalidOperator
+		return firestore.Operator(0), errInvalidOperator
 	}
 }
 
-func parseValue(value string) (Value, error) {
+func parseValue(value string) (firestore.Value, error) {
 	lexer := newValueLexer(value)
 	var tokens []token
 	for {
@@ -168,16 +116,16 @@ func parseValue(value string) (Value, error) {
 	return nil, fmt.Errorf("invalid value")
 }
 
-func parseValueToken(token token) (Value, error) {
+func parseValueToken(token token) (firestore.Value, error) {
 	switch token.kind {
 	case tokenString:
-		return StringValue{value: token.value}, nil
+		return firestore.NewStringValue(token.value), nil
 	case tokenTrue:
-		return BoolValue{value: true}, nil
+		return firestore.NewBoolValue(true), nil
 	case tokenFalse:
-		return BoolValue{value: false}, nil
+		return firestore.NewBoolValue(false), nil
 	case tokenNull:
-		return NullValue{}, nil
+		return firestore.NullValue{}, nil
 	case tokenNumber:
 		if strings.Contains(token.value, ".") {
 			v, err := strconv.ParseFloat(token.value, 64)
@@ -185,7 +133,7 @@ func parseValueToken(token token) (Value, error) {
 				return nil, fmt.Errorf("parsing float: %v", err)
 			}
 
-			return FloatValue{value: v}, nil
+			return firestore.NewFloatValue(v), nil
 		}
 
 		v, err := strconv.Atoi(token.value)
@@ -193,78 +141,22 @@ func parseValueToken(token token) (Value, error) {
 			return nil, fmt.Errorf("parsing int: %v", err)
 		}
 
-		return IntValue{value: v}, nil
+		return firestore.NewIntValue(v), nil
 	}
 
 	return nil, fmt.Errorf("invalid token: %s (%s)", token.kind.String(), token.value)
 }
 
-func parseListValueTokens(tokens []token) (ArrayValue, error) {
-	arrayValue := ArrayValue{}
+func parseListValueTokens(tokens []token) (firestore.ArrayValue, error) {
+	arrayValue := firestore.ArrayValue{}
 	for _, token := range tokens {
 		v, err := parseValueToken(token)
 		if err != nil {
-			return ArrayValue{}, fmt.Errorf("parsing list token: %v", err)
+			return firestore.ArrayValue{}, fmt.Errorf("parsing list token: %v", err)
 		}
 
-		arrayValue.values = append(arrayValue.values, v)
+		arrayValue.Add(v)
 	}
 
 	return arrayValue, nil
-}
-
-func (p KeyPath) Segments() []string {
-	return strings.Split(string(p), ".")
-}
-
-func (o Operator) String() string {
-	switch o {
-	case Eq:
-		return "=="
-	case Neq:
-		return "!="
-	case Gt:
-		return ">"
-	case Lt:
-		return "<"
-	case Gte:
-		return ">="
-	case Lte:
-		return "<="
-	case In:
-		return "in"
-	case ArrayContainsAny:
-		return "array-contains-any"
-	default:
-		return ""
-	}
-}
-
-func (v StringValue) Value() any {
-	return v.value
-}
-
-func (v IntValue) Value() any {
-	return v.value
-}
-
-func (v FloatValue) Value() any {
-	return v.value
-}
-
-func (v BoolValue) Value() any {
-	return v.value
-}
-
-func (v ArrayValue) Value() any {
-	list := make([]any, len(v.values))
-	for i, value := range v.values {
-		list[i] = value.Value()
-	}
-
-	return list
-}
-
-func (v NullValue) Value() any {
-	return nil
 }

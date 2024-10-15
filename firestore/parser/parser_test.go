@@ -3,6 +3,7 @@ package parser
 import (
 	"testing"
 
+	"github.com/steschwa/fst/firestore"
 	"github.com/stretchr/testify/assert"
 )
 
@@ -14,15 +15,15 @@ func TestParse(t *testing.T) {
 
 		key      string
 		operator string
-		value    Value
+		value    firestore.Value
 	}{
-		{source: `foo == "bar"`, key: "foo", operator: "==", value: StringValue{value: "bar"}},
-		{source: `name != 'hi'`, key: "name", operator: "!=", value: StringValue{value: "hi"}},
-		{source: `active == true`, key: "active", operator: "==", value: BoolValue{value: true}},
-		{source: `deleted == false`, key: "deleted", operator: "==", value: BoolValue{value: false}},
-		{source: `age > 30`, key: "age", operator: ">", value: IntValue{value: 30}},
-		{source: `price <= 2.5`, key: "price", operator: "<=", value: FloatValue{value: 2.5}},
-		{source: `date == null`, key: "date", operator: "==", value: NullValue{}},
+		{source: `foo == "bar"`, key: "foo", operator: "==", value: firestore.NewStringValue("bar")},
+		{source: `name != 'hi'`, key: "name", operator: "!=", value: firestore.NewStringValue("hi")},
+		{source: `active == true`, key: "active", operator: "==", value: firestore.NewBoolValue(true)},
+		{source: `deleted == false`, key: "deleted", operator: "==", value: firestore.NewBoolValue(false)},
+		{source: `age > 30`, key: "age", operator: ">", value: firestore.NewIntValue(30)},
+		{source: `price <= 2.5`, key: "price", operator: "<=", value: firestore.NewFloatValue(2.5)},
+		{source: `date == null`, key: "date", operator: "==", value: firestore.NewNullValue()},
 	}
 
 	for _, fixture := range fixtures {
@@ -43,23 +44,23 @@ func TestParseArray(t *testing.T) {
 	v, err := parseValue(`["foo", 10, 5.75, true, false, null]`)
 
 	assert.NoError(err)
-	assert.IsType(ArrayValue{}, v)
+	assert.IsType(firestore.ArrayValue{}, v)
 
-	arr := v.(ArrayValue)
+	arr := v.(firestore.ArrayValue)
 
-	assert.IsType(StringValue{}, arr.values[0])
-	assert.IsType(IntValue{}, arr.values[1])
-	assert.IsType(FloatValue{}, arr.values[2])
-	assert.IsType(BoolValue{}, arr.values[3])
-	assert.IsType(BoolValue{}, arr.values[4])
-	assert.IsType(NullValue{}, arr.values[5])
+	assert.IsType(firestore.StringValue{}, arr.Values[0])
+	assert.IsType(firestore.IntValue{}, arr.Values[1])
+	assert.IsType(firestore.FloatValue{}, arr.Values[2])
+	assert.IsType(firestore.BoolValue{}, arr.Values[3])
+	assert.IsType(firestore.BoolValue{}, arr.Values[4])
+	assert.IsType(firestore.NullValue{}, arr.Values[5])
 
-	assert.Equal("foo", arr.values[0].Value())
-	assert.Equal(10, arr.values[1].Value())
-	assert.Equal(5.75, arr.values[2].Value())
-	assert.Equal(true, arr.values[3].Value())
-	assert.Equal(false, arr.values[4].Value())
-	assert.Equal(nil, arr.values[5].Value())
+	assert.Equal("foo", arr.Values[0].Value())
+	assert.Equal(10, arr.Values[1].Value())
+	assert.Equal(5.75, arr.Values[2].Value())
+	assert.Equal(true, arr.Values[3].Value())
+	assert.Equal(false, arr.Values[4].Value())
+	assert.Equal(nil, arr.Values[5].Value())
 }
 
 func TestParseOperator(t *testing.T) {
@@ -67,35 +68,35 @@ func TestParseOperator(t *testing.T) {
 
 	o, err := parseOperator("==")
 	assert.NoError(err)
-	assert.Equal(Eq, o)
+	assert.Equal(firestore.Eq, o)
 
 	o, err = parseOperator("!=")
 	assert.NoError(err)
-	assert.Equal(Neq, o)
+	assert.Equal(firestore.Neq, o)
 
 	o, err = parseOperator(">")
 	assert.NoError(err)
-	assert.Equal(Gt, o)
+	assert.Equal(firestore.Gt, o)
 
 	o, err = parseOperator("<")
 	assert.NoError(err)
-	assert.Equal(Lt, o)
+	assert.Equal(firestore.Lt, o)
 
 	o, err = parseOperator(">=")
 	assert.NoError(err)
-	assert.Equal(Gte, o)
+	assert.Equal(firestore.Gte, o)
 
 	o, err = parseOperator("<=")
 	assert.NoError(err)
-	assert.Equal(Lte, o)
+	assert.Equal(firestore.Lte, o)
 
 	o, err = parseOperator("in")
 	assert.NoError(err)
-	assert.Equal(In, o)
+	assert.Equal(firestore.In, o)
 
 	o, err = parseOperator("array-contains-any")
 	assert.NoError(err)
-	assert.Equal(o, ArrayContainsAny)
+	assert.Equal(o, firestore.ArrayContainsAny)
 
 	o, err = parseOperator("")
 	assert.Error(err)
