@@ -33,7 +33,7 @@ var (
 
 func init() {
 	queryCommand.Flags().BoolVar(&count, "count", false, "count documents instead of returning json")
-	queryCommand.Flags().StringArrayVarP(&where, "where", "w", nil, "documents filter. can be used multiple times")
+	queryCommand.Flags().StringArrayVarP(&where, "where", "w", nil, "documents filter in format {KEY} {OPERATOR} {VALUE}. can be used multiple times")
 }
 
 type (
