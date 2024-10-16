@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
@@ -27,7 +28,16 @@ var setCommand = &cobra.Command{
 		}
 		defer client.Close()
 
-		fmt.Println(string(config.Data))
+		// fmt.Println(string(config.Data))
+
+		if firestore.IsDocumentPath(config.Path) {
+			setClient := firestore.NewSetClient(client, config.Path)
+			err := setClient.Set(config.Data)
+			if err != nil {
+				fmt.Printf("failed to set document: %v\n", err)
+				os.Exit(1)
+			}
+		}
 	},
 }
 
@@ -42,7 +52,7 @@ func init() {
 type SetConfig struct {
 	ProjectID string
 	Path      string
-	Data      []byte
+	Data      map[string]any
 }
 
 func initSetConfig() (config SetConfig, err error) {
@@ -76,10 +86,8 @@ func initSetConfig() (config SetConfig, err error) {
 		}
 	}
 
-	// TODO: investige if maye reading json object-by-object is possible
-	config.Data, err = io.ReadAll(r)
-	if err != nil {
-		return config, fmt.Errorf("failed to read from %s", dataPath)
+	if err := json.NewDecoder(r).Decode(&config.Data); err != nil {
+		return config, fmt.Errorf("failed to decode json from %s", dataPath)
 	}
 
 	return config, nil
