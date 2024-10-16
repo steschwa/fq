@@ -71,6 +71,9 @@ func (l *valueLexer) lex() token {
 		l.unread()
 		value := l.lexString()
 		return token{kind: tokenString, value: value}
+	case '-':
+		l.unread()
+		return l.lexNumber()
 	}
 
 	if unicode.IsSpace(r) {
@@ -153,13 +156,17 @@ func (l *valueLexer) lexNumber() token {
 	for {
 		r := l.read()
 
-		if unicode.IsDigit(r) {
+		if unicode.IsDigit(r) || r == '-' {
 			value += string(r)
 			continue
 		}
 
 		l.unread()
 		break
+	}
+
+	if value == "-" {
+		return token{kind: tokenIllegal}
 	}
 
 	if r := l.read(); r != '.' {
