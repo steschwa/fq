@@ -23,6 +23,9 @@ var queryCommand = &cobra.Command{
 		fmt.Printf("ProjectID: %s\n", config.ProjectID)
 		fmt.Printf("Path: %s\n", config.Path)
 		fmt.Printf("Count: %t\n", config.Count)
+		for i, w := range config.Wheres {
+			fmt.Printf("Where (%d): %s\n", i+1, w.String())
+		}
 	},
 }
 

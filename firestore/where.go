@@ -1,6 +1,9 @@
 package firestore
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 type (
 	KeyPath string
@@ -8,6 +11,7 @@ type (
 	Operator int
 
 	Value interface {
+		String() string
 		Value() any
 	}
 
@@ -23,10 +27,10 @@ type (
 	BoolValue struct {
 		value bool
 	}
+	NullValue  struct{}
 	ArrayValue struct {
 		Values []Value
 	}
-	NullValue struct{}
 
 	Where struct {
 		Key      KeyPath
@@ -88,12 +92,18 @@ func NewStringValue(value string) StringValue {
 func (v StringValue) Value() any {
 	return v.value
 }
+func (v StringValue) String() string {
+	return fmt.Sprintf(`"%s"`, v.value)
+}
 
 func NewIntValue(value int) IntValue {
 	return IntValue{value: value}
 }
 func (v IntValue) Value() any {
 	return v.value
+}
+func (v IntValue) String() string {
+	return fmt.Sprint(v.value)
 }
 
 func NewFloatValue(value float64) FloatValue {
@@ -102,12 +112,28 @@ func NewFloatValue(value float64) FloatValue {
 func (v FloatValue) Value() any {
 	return v.value
 }
+func (v FloatValue) String() string {
+	return fmt.Sprint(v.value)
+}
 
 func NewBoolValue(value bool) BoolValue {
 	return BoolValue{value: value}
 }
 func (v BoolValue) Value() any {
 	return v.value
+}
+func (v BoolValue) String() string {
+	return fmt.Sprint(v.value)
+}
+
+func NewNullValue() NullValue {
+	return NullValue{}
+}
+func (v NullValue) Value() any {
+	return nil
+}
+func (v NullValue) String() string {
+	return "null"
 }
 
 func NewArrayValue() ArrayValue {
@@ -124,10 +150,17 @@ func (v ArrayValue) Value() any {
 
 	return list
 }
+func (v ArrayValue) String() string {
+	members := make([]string, len(v.Values))
+	for i, v := range v.Values {
+		members[i] = v.String()
+	}
 
-func NewNullValue() NullValue {
-	return NullValue{}
+	formattedMembers := strings.Join(members, ", ")
+
+	return fmt.Sprintf("[%s]", formattedMembers)
 }
-func (v NullValue) Value() any {
-	return nil
+
+func (w Where) String() string {
+	return fmt.Sprintf("%s %s %s", w.Key, w.Operator.String(), w.Value.String())
 }

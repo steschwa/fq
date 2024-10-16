@@ -22,7 +22,7 @@ var (
 func Parse(source string) (firestore.Where, error) {
 	matches := whereRe.FindStringSubmatch(source)
 	if len(matches) != 4 {
-		return firestore.Where{}, fmt.Errorf("regex matching where")
+		return firestore.Where{}, fmt.Errorf("invalid where")
 	}
 
 	key := matches[1]
