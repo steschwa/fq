@@ -9,10 +9,16 @@ import (
 	"cloud.google.com/go/firestore"
 )
 
-type SetClient struct {
-	client *firestore.Client
-	path   string
-}
+type (
+	SetClient struct {
+		client *firestore.Client
+		path   string
+	}
+
+	SetOptions struct {
+		ReplaceDoc bool
+	}
+)
 
 func NewSetClient(client *firestore.Client, path string) *SetClient {
 	return &SetClient{
@@ -21,11 +27,16 @@ func NewSetClient(client *firestore.Client, path string) *SetClient {
 	}
 }
 
-func (c SetClient) Set(data any) error {
+func (c SetClient) Set(data any, options SetOptions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 
-	_, err := c.client.Doc(c.path).Set(ctx, data, firestore.MergeAll)
+	var setOptions []firestore.SetOption
+	if !options.ReplaceDoc {
+		setOptions = append(setOptions, firestore.MergeAll)
+	}
+
+	_, err := c.client.Doc(c.path).Set(ctx, data, setOptions...)
 	if errors.Is(err, context.Canceled) {
 		return fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
 	}

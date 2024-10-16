@@ -28,11 +28,11 @@ var setCommand = &cobra.Command{
 		}
 		defer client.Close()
 
-		// fmt.Println(string(config.Data))
-
 		if firestore.IsDocumentPath(config.Path) {
 			setClient := firestore.NewSetClient(client, config.Path)
-			err := setClient.Set(config.Data)
+			err := setClient.Set(config.Data, firestore.SetOptions{
+				ReplaceDoc: config.ReplaceDoc,
+			})
 			if err != nil {
 				fmt.Printf("failed to set document: %v\n", err)
 				os.Exit(1)
@@ -42,17 +42,20 @@ var setCommand = &cobra.Command{
 }
 
 var (
-	dataPath string
+	dataPath   string
+	replaceDoc bool
 )
 
 func init() {
 	setCommand.Flags().StringVar(&dataPath, "data", "--", "input data. can be -- to read from stdin")
+	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
 }
 
 type SetConfig struct {
-	ProjectID string
-	Path      string
-	Data      map[string]any
+	ProjectID  string
+	Path       string
+	ReplaceDoc bool
+	Data       map[string]any
 }
 
 func initSetConfig() (config SetConfig, err error) {
@@ -66,6 +69,7 @@ func initSetConfig() (config SetConfig, err error) {
 		return config, fmt.Errorf("invalid firestore path")
 	}
 	config.Path = Path
+	config.ReplaceDoc = replaceDoc
 
 	var r io.Reader
 	if dataPath == "" || dataPath == "--" {
