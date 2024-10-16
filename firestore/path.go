@@ -24,11 +24,21 @@ func ValidatePath(path string) error {
 }
 
 func IsCollectionPath(path string) bool {
-	parts := strings.Split(path, "/")
-	return len(parts)%2 == 1
+	segments := strings.Split(path, "/")
+	return len(segments)%2 == 1 && isValidPathSegments(segments)
 }
 
 func IsDocumentPath(path string) bool {
-	parts := strings.Split(path, "/")
-	return len(parts)%2 == 0
+	segments := strings.Split(path, "/")
+	return len(segments)%2 == 0 && isValidPathSegments(segments)
+}
+
+func isValidPathSegments(segments []string) bool {
+	for _, segment := range segments {
+		if segment == "" {
+			return false
+		}
+	}
+
+	return true
 }
