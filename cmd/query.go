@@ -2,7 +2,6 @@ package cmd
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 
@@ -11,14 +10,9 @@ import (
 	"github.com/steschwa/fst/firestore/parser"
 )
 
-const (
-	timeoutCreateFirestoreClient = 10
-	timeoutQueryDocuments        = 30
-)
-
 var queryCommand = &cobra.Command{
 	Use:   "query",
-	Short: "Query Firestore",
+	Short: "query firestore",
 	Run: func(*cobra.Command, []string) {
 		config, err := initQueryConfig()
 		if err != nil {
@@ -99,21 +93,15 @@ func init() {
 	queryCommand.Flags().IntVar(&limit, "limit", -1, "limit number of returned documents")
 }
 
-type (
-	QueryConfig struct {
-		ProjectID       string
-		Path            string
-		Count           bool
-		Wheres          []firestore.Where
-		OrderBy         string
-		OrderDescending bool
-		Limit           int
-	}
-)
-
-var (
-	errEmptyProjectID = errors.New("empty project id")
-)
+type QueryConfig struct {
+	ProjectID       string
+	Path            string
+	Count           bool
+	Wheres          []firestore.Where
+	OrderBy         string
+	OrderDescending bool
+	Limit           int
+}
 
 func initQueryConfig() (config QueryConfig, err error) {
 	if ProjectID == "" {
@@ -123,7 +111,7 @@ func initQueryConfig() (config QueryConfig, err error) {
 
 	err = firestore.ValidatePath(Path)
 	if err != nil {
-		return QueryConfig{}, fmt.Errorf("invalid firestore path")
+		return config, fmt.Errorf("invalid firestore path")
 	}
 	config.Path = Path
 

@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"errors"
 	"fmt"
 	"os"
 
@@ -18,8 +19,13 @@ var (
 	Path      string
 )
 
+var (
+	errEmptyProjectID = errors.New("empty project id")
+)
+
 func init() {
 	rootCmd.AddCommand(queryCommand)
+	rootCmd.AddCommand(setCommand)
 
 	rootCmd.PersistentFlags().StringVar(&ProjectID, "project", "", "firebase project id")
 	rootCmd.MarkPersistentFlagRequired("project")
