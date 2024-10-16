@@ -63,6 +63,22 @@ var queryCommand = &cobra.Command{
 				fmt.Print(string(j))
 			}
 
+		} else if firestore.IsDocumentPath(config.Path) {
+			loader := firestore.NewDocLoader(client, config.Path)
+
+			doc, err := loader.GetDoc()
+			if err != nil {
+				fmt.Printf("loading document: %v\n", err)
+				os.Exit(1)
+			}
+
+			j, err := json.Marshal(doc)
+			if err != nil {
+				fmt.Printf("marshalling document to json: %v\n", err)
+				os.Exit(1)
+			}
+
+			fmt.Print(string(j))
 		}
 	},
 }
