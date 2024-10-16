@@ -33,6 +33,26 @@ func (b *QueryBuilder) SetWheres(wheres []Where) *QueryBuilder {
 	return b
 }
 
+func (b *QueryBuilder) SetOrderBy(orderBy string, dir firestore.Direction) *QueryBuilder {
+	if orderBy == "" {
+		return b
+	}
+
+	b.query = b.query.OrderBy(orderBy, dir)
+
+	return b
+}
+
+func (b *QueryBuilder) SetLimit(limit int) *QueryBuilder {
+	if limit <= 0 {
+		return b
+	}
+
+	b.query = b.query.Limit(limit)
+
+	return b
+}
+
 func (b *QueryBuilder) applyWhere(where Where) {
 	b.query = b.query.Where(string(where.Key), where.Operator.String(), where.Value.Value())
 }
