@@ -16,7 +16,7 @@ type (
 	}
 
 	SetOptions struct {
-		ReplaceDoc bool
+		ReplaceDocument bool
 	}
 )
 
@@ -32,7 +32,7 @@ func (c SetClient) Set(data any, options SetOptions) error {
 	defer cancel()
 
 	var setOptions []firestore.SetOption
-	if !options.ReplaceDoc {
+	if !options.ReplaceDocument {
 		setOptions = append(setOptions, firestore.MergeAll)
 	}
 
