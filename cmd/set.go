@@ -115,7 +115,7 @@ type (
 		value map[string]any
 	}
 	jsonArray struct {
-		values []jsonObject
+		values []map[string]any
 	}
 )
 
@@ -142,11 +142,11 @@ func (j *jsonArray) UnmarshalJSON(bytes []byte) error {
 
 	switch data := data.(type) {
 	case []any:
-		objects := make([]jsonObject, len(data))
+		objects := make([]map[string]any, len(data))
 		for i, value := range data {
 			switch value := value.(type) {
 			case map[string]any:
-				objects[i] = jsonObject{value: value}
+				objects[i] = value
 			default:
 				return fmt.Errorf("no json object in array at pos %d", i+1)
 			}
