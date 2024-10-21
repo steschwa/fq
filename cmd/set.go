@@ -28,11 +28,19 @@ var setCommand = &cobra.Command{
 		}
 		defer client.Close()
 
-		if firestore.IsDocumentPath(config.Path) {
-			setClient := firestore.NewSetClient(client, config.Path)
-			err := setClient.Set(config.DocumentData.value, firestore.SetOptions{
-				ReplaceDocument: config.ReplaceDoc,
-			})
+		setClient := firestore.NewSetClient(client, config.Path)
+		options := firestore.SetOptions{
+			ReplaceDocument: config.ReplaceDoc,
+		}
+
+		if firestore.IsCollectionPath(config.Path) {
+			err := setClient.SetMany(config.CollectionData, options)
+			if err != nil {
+				fmt.Printf("failed to set documents: %v\n", err)
+				os.Exit(1)
+			}
+		} else if firestore.IsDocumentPath(config.Path) {
+			err := setClient.Set(config.DocumentData, options)
 			if err != nil {
 				fmt.Printf("failed to set document: %v\n", err)
 				os.Exit(1)
@@ -55,8 +63,8 @@ type SetConfig struct {
 	ProjectID      string
 	Path           string
 	ReplaceDoc     bool
-	DocumentData   jsonObject
-	CollectionData jsonArray
+	DocumentData   firestore.JSONObject
+	CollectionData firestore.JSONArray
 }
 
 func initSetConfig() (config SetConfig, err error) {
@@ -108,54 +116,4 @@ func initSetConfig() (config SetConfig, err error) {
 	}
 
 	return config, nil
-}
-
-type (
-	jsonObject struct {
-		value map[string]any
-	}
-	jsonArray struct {
-		values []map[string]any
-	}
-)
-
-func (j *jsonObject) UnmarshalJSON(bytes []byte) error {
-	var data any
-	if err := json.Unmarshal(bytes, &data); err != nil {
-		return err
-	}
-
-	switch data := data.(type) {
-	case map[string]any:
-		j.value = data
-		return nil
-	default:
-		return fmt.Errorf("expected json object, got %T", data)
-	}
-}
-
-func (j *jsonArray) UnmarshalJSON(bytes []byte) error {
-	var data any
-	if err := json.Unmarshal(bytes, &data); err != nil {
-		return err
-	}
-
-	switch data := data.(type) {
-	case []any:
-		objects := make([]map[string]any, len(data))
-		for i, value := range data {
-			switch value := value.(type) {
-			case map[string]any:
-				objects[i] = value
-			default:
-				return fmt.Errorf("no json object in array at pos %d", i+1)
-			}
-		}
-
-		j.values = objects
-
-		return nil
-	default:
-		return fmt.Errorf("expected json array, got %T", data)
-	}
 }
