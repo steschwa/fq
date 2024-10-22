@@ -2,7 +2,7 @@ default:
     just --list
 
 clean:
-    rm ./fst
+    -rm ./fst
 
 build: clean test
     go build -ldflags '-s' -trimpath -o ./fst 
