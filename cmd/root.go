@@ -11,7 +11,10 @@ import (
 var rootCmd = &cobra.Command{
 	Use:   "fst",
 	Short: "CLI tool to interact with Firestore",
-	Run:   func(*cobra.Command, []string) {},
+	Run: func(*cobra.Command, []string) {
+		fmt.Println("please specify a subcommand to run")
+		os.Exit(1)
+	},
 }
 
 var (
