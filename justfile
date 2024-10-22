@@ -7,8 +7,8 @@ clean:
 build: clean test
     go build -ldflags '-s' -trimpath -o ./fst 
 
-install:
-    go install .
+install: test
+    go install -ldflags '-s' -trimpath .
 
 test:
     go test ./...
