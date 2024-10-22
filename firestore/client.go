@@ -4,8 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os"
-	"strings"
 	"time"
 
 	"cloud.google.com/go/firestore"
@@ -20,7 +18,7 @@ func NewClient(projectID string) (*firestore.Client, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutNewClient)
 	defer cancel()
 
-	if isEmulatorProject(projectID) {
+	if IsEmulatorProject(projectID) {
 		setupEmulatorEnvironment()
 	}
 
@@ -33,16 +31,4 @@ func NewClient(projectID string) (*firestore.Client, error) {
 	}
 
 	return client, nil
-}
-
-func isEmulatorProject(projectID string) bool {
-	// https://firebase.google.com/docs/emulator-suite/connect_firestore#choose_a_firebase_project
-	return strings.HasPrefix(projectID, "demo-")
-}
-
-func setupEmulatorEnvironment() {
-	emulatorHostEnv := os.Getenv("FIRESTORE_EMULATOR_HOST")
-	if emulatorHostEnv == "" {
-		os.Setenv("FIRESTORE_EMULATOR_HOST", "localhost:8080")
-	}
 }

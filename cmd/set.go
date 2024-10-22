@@ -17,6 +17,11 @@ var setCommand = &cobra.Command{
 	Short: "insert / update firestore documents",
 	Run: func(*cobra.Command, []string) {
 		config, err := initSetConfig()
+		if errors.Is(err, errNonEmulatorProjectID) {
+			fmt.Println("only emulator projects are supported (projects starting with demo-*).")
+			fmt.Println("see https://firebase.google.com/docs/emulator-suite/connect_firestore#choose_a_firebase_project")
+			os.Exit(1)
+		}
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
@@ -68,9 +73,16 @@ type SetConfig struct {
 	CollectionData firestore.JSONArray
 }
 
+var (
+	errNonEmulatorProjectID = errors.New("not a emulator project")
+)
+
 func initSetConfig() (config SetConfig, err error) {
 	if ProjectID == "" {
 		return config, errEmptyProjectID
+	}
+	if !firestore.IsEmulatorProject(ProjectID) {
+		return config, errNonEmulatorProjectID
 	}
 	config.ProjectID = ProjectID
 
