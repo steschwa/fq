@@ -1,4 +1,4 @@
-package cmd
+package firestore
 
 import (
 	"encoding/json"
@@ -27,7 +27,7 @@ func TestJSONObjectDecoding(t *testing.T) {
 	}
 
 	for i, fixture := range fixtures {
-		var j jsonObject
+		var j JSONObject
 		err := json.Unmarshal([]byte(fixture.data), &j)
 
 		if fixture.shouldError {
@@ -63,7 +63,7 @@ func TestJSONArrayDecoding(t *testing.T) {
 	}
 
 	for i, fixture := range fixtures {
-		var j jsonArray
+		var j JSONArray
 		err := json.Unmarshal([]byte(fixture.data), &j)
 
 		if fixture.shouldError {
