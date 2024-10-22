@@ -9,6 +9,7 @@ import (
 
 	"github.com/spf13/cobra"
 	"github.com/steschwa/fst/firestore"
+	"github.com/steschwa/fst/utils"
 )
 
 var setCommand = &cobra.Command{
@@ -55,7 +56,7 @@ var (
 )
 
 func init() {
-	setCommand.Flags().StringVar(&dataPath, "data", "--", "input data. can be -- to read from stdin")
+	setCommand.Flags().StringVar(&dataPath, "data", "--", "input data json file. can be -- to read from stdin")
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
 }
 
@@ -85,10 +86,8 @@ func initSetConfig() (config SetConfig, err error) {
 		dataPathName string
 	)
 	if dataPath == "" || dataPath == "--" {
-		if fi, err := os.Stdin.Stat(); err == nil {
-			if fi.Size() <= 0 {
-				return config, fmt.Errorf("no data from stdin")
-			}
+		if utils.IsStdinEmpty() {
+			return config, fmt.Errorf("no data from stdin")
 		}
 
 		dataPathName = "stdin"
