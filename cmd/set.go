@@ -38,6 +38,7 @@ var setCommand = &cobra.Command{
 		options := firestore.SetOptions{
 			ReplaceDocument: config.ReplaceDoc,
 			ShowProgress:    config.ShowProgress,
+			Delay:           config.Delay,
 		}
 
 		if firestore.IsCollectionPath(config.Path) {
@@ -60,12 +61,14 @@ var (
 	dataPath     string
 	replaceDoc   bool
 	showProgress bool
+	delay        int
 )
 
 func init() {
 	setCommand.Flags().StringVar(&dataPath, "data", "-", "input data json file. can be - to read from stdin")
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
 	setCommand.Flags().BoolVar(&showProgress, "progress", false, "show the progress")
+	setCommand.Flags().IntVar(&delay, "delay", 0, "delay between operations in milliseconds")
 }
 
 type SetConfig struct {
@@ -73,12 +76,14 @@ type SetConfig struct {
 	Path           string
 	ReplaceDoc     bool
 	ShowProgress   bool
+	Delay          int
 	DocumentData   firestore.JSONObject
 	CollectionData firestore.JSONArray
 }
 
 var (
 	errNonEmulatorProjectID = errors.New("not an emulator project")
+	errNegativeDelay        = errors.New("invalid delay value. must be greater than 0")
 )
 
 func initSetConfig() (config SetConfig, err error) {
@@ -97,6 +102,11 @@ func initSetConfig() (config SetConfig, err error) {
 	config.Path = Path
 	config.ReplaceDoc = replaceDoc
 	config.ShowProgress = showProgress
+
+	if delay < 0 {
+		return config, errNegativeDelay
+	}
+	config.Delay = delay
 
 	var (
 		r            io.Reader
