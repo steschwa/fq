@@ -48,6 +48,10 @@ var queryCommand = &cobra.Command{
 					os.Exit(1)
 				}
 
+				if docs == nil {
+					docs = []any{}
+				}
+
 				j, err := json.Marshal(docs)
 				if err != nil {
 					fmt.Printf("marshalling documents to json: %v\n", err)
