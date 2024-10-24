@@ -8,8 +8,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/steschwa/fst/firestore"
-	"github.com/steschwa/fst/utils"
+	"github.com/steschwa/fq/firestore"
+	"github.com/steschwa/fq/utils"
 )
 
 var setCommand = &cobra.Command{

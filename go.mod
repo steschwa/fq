@@ -1,4 +1,4 @@
-module github.com/steschwa/fst
+module github.com/steschwa/fq
 
 go 1.23.2
 

@@ -7,7 +7,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/steschwa/fst/firestore"
+	"github.com/steschwa/fq/firestore"
 )
 
 var (

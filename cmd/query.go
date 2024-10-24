@@ -6,8 +6,8 @@ import (
 	"os"
 
 	"github.com/spf13/cobra"
-	"github.com/steschwa/fst/firestore"
-	"github.com/steschwa/fst/firestore/parser"
+	"github.com/steschwa/fq/firestore"
+	"github.com/steschwa/fq/firestore/parser"
 )
 
 var queryCommand = &cobra.Command{

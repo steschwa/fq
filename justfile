@@ -2,10 +2,10 @@ default:
     just --list
 
 clean:
-    -rm ./fst
+    -rm ./fq
 
 build: clean test
-    go build -ldflags '-s' -trimpath -o ./fst 
+    go build -ldflags '-s' -trimpath -o ./fq 
 
 install: test
     go install -ldflags '-s' -trimpath .

@@ -9,7 +9,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "fst",
+	Use:   "fq",
 	Short: "CLI tool to interact with Firestore",
 	Run: func(*cobra.Command, []string) {
 		fmt.Println("please specify a subcommand to run")

@@ -3,7 +3,7 @@ package parser
 import (
 	"testing"
 
-	"github.com/steschwa/fst/firestore"
+	"github.com/steschwa/fq/firestore"
 	"github.com/stretchr/testify/assert"
 )
 
