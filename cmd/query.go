@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"os"
 
@@ -65,6 +66,10 @@ var queryCommand = &cobra.Command{
 			loader := firestore.NewDocLoader(client, config.Path)
 
 			doc, err := loader.GetDoc()
+			if errors.Is(err, firestore.ErrDocumentNotFound) {
+				fmt.Print("null")
+				os.Exit(0)
+			}
 			if err != nil {
 				fmt.Printf("loading document: %v\n", err)
 				os.Exit(1)
