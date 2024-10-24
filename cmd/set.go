@@ -61,7 +61,7 @@ var (
 )
 
 func init() {
-	setCommand.Flags().StringVar(&dataPath, "data", "--", "input data json file. can be -- to read from stdin")
+	setCommand.Flags().StringVar(&dataPath, "data", "-", "input data json file. can be - to read from stdin")
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
 }
 
@@ -97,7 +97,7 @@ func initSetConfig() (config SetConfig, err error) {
 		r            io.Reader
 		dataPathName string
 	)
-	if dataPath == "" || dataPath == "--" {
+	if dataPath == "" || dataPath == "-" {
 		if utils.IsStdinEmpty() {
 			return config, fmt.Errorf("no data from stdin")
 		}
