@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"cloud.google.com/go/firestore"
+	"github.com/steschwa/fq/utils"
 )
 
 type (
@@ -72,7 +73,7 @@ func (c SetClient) SetMany(data JSONArray, options SetOptions) error {
 		}
 
 		if options.ShowProgress {
-			fmt.Print("\033[2K\r")
+			utils.ClearLine()
 			fmt.Printf("%d/%d", i+1, len(data.Values))
 		}
 	}
