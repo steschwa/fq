@@ -37,6 +37,7 @@ var setCommand = &cobra.Command{
 		setClient := firestore.NewSetClient(client, config.Path)
 		options := firestore.SetOptions{
 			ReplaceDocument: config.ReplaceDoc,
+			ShowProgress:    config.ShowProgress,
 		}
 
 		if firestore.IsCollectionPath(config.Path) {
@@ -56,25 +57,28 @@ var setCommand = &cobra.Command{
 }
 
 var (
-	dataPath   string
-	replaceDoc bool
+	dataPath     string
+	replaceDoc   bool
+	showProgress bool
 )
 
 func init() {
 	setCommand.Flags().StringVar(&dataPath, "data", "-", "input data json file. can be - to read from stdin")
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
+	setCommand.Flags().BoolVar(&showProgress, "progress", false, "show the progress")
 }
 
 type SetConfig struct {
 	ProjectID      string
 	Path           string
 	ReplaceDoc     bool
+	ShowProgress   bool
 	DocumentData   firestore.JSONObject
 	CollectionData firestore.JSONArray
 }
 
 var (
-	errNonEmulatorProjectID = errors.New("not a emulator project")
+	errNonEmulatorProjectID = errors.New("not an emulator project")
 )
 
 func initSetConfig() (config SetConfig, err error) {
@@ -92,6 +96,7 @@ func initSetConfig() (config SetConfig, err error) {
 	}
 	config.Path = Path
 	config.ReplaceDoc = replaceDoc
+	config.ShowProgress = showProgress
 
 	var (
 		r            io.Reader

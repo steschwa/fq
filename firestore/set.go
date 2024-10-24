@@ -17,6 +17,7 @@ type (
 
 	SetOptions struct {
 		ReplaceDocument bool
+		ShowProgress    bool
 	}
 )
 
@@ -40,7 +41,7 @@ func (c SetClient) SetMany(data JSONArray, options SetOptions) error {
 	writer := c.client.BulkWriter(ctx)
 	queued := 0
 
-	for _, obj := range data.Values {
+	for i, obj := range data.Values {
 		var doc *firestore.DocumentRef
 
 		if id, found := obj["id"]; found {
@@ -69,6 +70,11 @@ func (c SetClient) SetMany(data JSONArray, options SetOptions) error {
 			writer.Flush()
 			queued = 0
 		}
+
+		if options.ShowProgress {
+			fmt.Print("\033[2K\r")
+			fmt.Printf("%d/%d", i+1, len(data.Values))
+		}
 	}
 
 	writer.End()
@@ -92,6 +98,8 @@ func (c SetClient) Set(data JSONObject, options SetOptions) error {
 	if err != nil {
 		return err
 	}
+
+	fmt.Printf("1/1")
 
 	return nil
 }
