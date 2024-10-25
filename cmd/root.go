@@ -5,7 +5,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
+	"github.com/steschwa/fq/completion"
 )
 
 var rootCmd = &cobra.Command{
@@ -35,6 +37,12 @@ func init() {
 
 	rootCmd.PersistentFlags().StringVar(&Path, "path", "", "collection or document path")
 	rootCmd.MarkPersistentFlagRequired("path")
+
+	c := carapace.Gen(rootCmd)
+	c.Standalone()
+	c.FlagCompletion(carapace.ActionMap{
+		"project": completion.ActionGCloudProjects(),
+	})
 }
 
 func Execute() {
