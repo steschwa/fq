@@ -15,9 +15,13 @@ type gcloudProject struct {
 }
 
 func ActionGCloudProjects() carapace.Action {
-	return carapace.ActionExecCommand("gcloud", "projects", "list", "--format=json")(func(output []byte) carapace.Action {
+	return carapace.ActionExecCommandE("gcloud", "projects", "list", "--format=json")(func(output []byte, err error) carapace.Action {
+		if err != nil {
+			return carapace.ActionValues()
+		}
+
 		var projects []gcloudProject
-		err := json.Unmarshal(output, &projects)
+		err = json.Unmarshal(output, &projects)
 		if err != nil {
 			return carapace.ActionValues()
 		}
