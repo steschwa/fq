@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 
+	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 	"github.com/steschwa/fq/firestore"
 	"github.com/steschwa/fq/utils"
@@ -69,6 +70,12 @@ func init() {
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
 	setCommand.Flags().BoolVar(&showProgress, "progress", false, "show the progress")
 	setCommand.Flags().IntVar(&delay, "delay", 0, "delay between operations in milliseconds")
+
+	c := carapace.Gen(setCommand)
+	c.Standalone()
+	c.FlagCompletion(carapace.ActionMap{
+		"data": carapace.ActionFiles("json"),
+	})
 }
 
 type SetConfig struct {
