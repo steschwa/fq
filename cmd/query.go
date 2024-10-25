@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
 	"github.com/steschwa/fq/firestore"
 	"github.com/steschwa/fq/firestore/parser"
@@ -100,6 +101,9 @@ func init() {
 	queryCommand.Flags().StringVar(&orderBy, "order-by", "", "set column to order by")
 	queryCommand.Flags().BoolVar(&desc, "desc", false, "order documents in descending order (only used if --order-by is set)")
 	queryCommand.Flags().IntVar(&limit, "limit", -1, "limit number of returned documents")
+
+	c := carapace.Gen(queryCommand)
+	c.Standalone()
 }
 
 type QueryConfig struct {

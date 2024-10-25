@@ -2,6 +2,7 @@ package completion
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/carapace-sh/carapace"
 )
@@ -39,5 +40,5 @@ func ActionGCloudProjects() carapace.Action {
 		}
 
 		return carapace.ActionValuesDescribed(values...)
-	})
+	}).Cache(time.Second * 5)
 }
