@@ -15,17 +15,17 @@ const (
 	timeoutRunQuery = 30
 )
 
-type QueryBuilder struct {
+type QueryClient struct {
 	query firestore.Query
 }
 
-func NewQueryBuilder(client *firestore.Client, path string) *QueryBuilder {
-	return &QueryBuilder{
+func NewQueryClient(client *firestore.Client, path string) *QueryClient {
+	return &QueryClient{
 		query: client.Collection(path).Query,
 	}
 }
 
-func (b *QueryBuilder) SetWheres(wheres []Where) *QueryBuilder {
+func (b *QueryClient) SetWheres(wheres []Where) *QueryClient {
 	for _, where := range wheres {
 		b.applyWhere(where)
 	}
@@ -33,7 +33,7 @@ func (b *QueryBuilder) SetWheres(wheres []Where) *QueryBuilder {
 	return b
 }
 
-func (b *QueryBuilder) SetOrderBy(orderBy string, dir firestore.Direction) *QueryBuilder {
+func (b *QueryClient) SetOrderBy(orderBy string, dir firestore.Direction) *QueryClient {
 	if orderBy == "" {
 		return b
 	}
@@ -43,7 +43,7 @@ func (b *QueryBuilder) SetOrderBy(orderBy string, dir firestore.Direction) *Quer
 	return b
 }
 
-func (b *QueryBuilder) SetLimit(limit int) *QueryBuilder {
+func (b *QueryClient) SetLimit(limit int) *QueryClient {
 	if limit <= 0 {
 		return b
 	}
@@ -53,11 +53,11 @@ func (b *QueryBuilder) SetLimit(limit int) *QueryBuilder {
 	return b
 }
 
-func (b *QueryBuilder) applyWhere(where Where) {
+func (b *QueryClient) applyWhere(where Where) {
 	b.query = b.query.Where(string(where.Key), where.Operator.String(), where.Value.Value())
 }
 
-func (b QueryBuilder) GetDocs() ([]any, error) {
+func (b QueryClient) GetDocs() ([]any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 
@@ -83,7 +83,7 @@ func (b QueryBuilder) GetDocs() ([]any, error) {
 	return out, nil
 }
 
-func (b QueryBuilder) GetCount() (int, error) {
+func (b QueryClient) GetCount() (int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 

@@ -15,17 +15,17 @@ var (
 	ErrDocumentNotFound = errors.New("document does not exist")
 )
 
-type DocLoader struct {
+type DocClient struct {
 	doc *firestore.DocumentRef
 }
 
-func NewDocLoader(client *firestore.Client, path string) *DocLoader {
-	return &DocLoader{
+func NewDocClient(client *firestore.Client, path string) *DocClient {
+	return &DocClient{
 		doc: client.Doc(path),
 	}
 }
 
-func (l DocLoader) GetDoc() (any, error) {
+func (l DocClient) GetDoc() (any, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 

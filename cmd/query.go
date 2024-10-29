@@ -30,13 +30,13 @@ var queryCommand = &cobra.Command{
 		defer client.Close()
 
 		if firestore.IsCollectionPath(config.Path) {
-			builder := firestore.NewQueryBuilder(client, config.Path)
-			builder.SetWheres(config.Wheres).
+			queryClient := firestore.NewQueryClient(client, config.Path)
+			queryClient.SetWheres(config.Wheres).
 				SetOrderBy(config.OrderBy, firestore.GetFirestoreDirection(config.OrderDescending)).
 				SetLimit(config.Limit)
 
 			if config.Count {
-				count, err := builder.GetCount()
+				count, err := queryClient.GetCount()
 				if err != nil {
 					fmt.Printf("loading documents count: %v\n", err)
 					os.Exit(1)
@@ -44,7 +44,7 @@ var queryCommand = &cobra.Command{
 
 				fmt.Print(count)
 			} else {
-				docs, err := builder.GetDocs()
+				docs, err := queryClient.GetDocs()
 				if err != nil {
 					fmt.Printf("loading documents: %v\n", err)
 					os.Exit(1)
@@ -64,9 +64,9 @@ var queryCommand = &cobra.Command{
 			}
 
 		} else if firestore.IsDocumentPath(config.Path) {
-			loader := firestore.NewDocLoader(client, config.Path)
+			docClient := firestore.NewDocClient(client, config.Path)
 
-			doc, err := loader.GetDoc()
+			doc, err := docClient.GetDoc()
 			if errors.Is(err, firestore.ErrDocumentNotFound) {
 				fmt.Print("null")
 				os.Exit(0)
