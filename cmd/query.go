@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"os"
 
 	"github.com/carapace-sh/carapace"
 	"github.com/spf13/cobra"
@@ -15,17 +14,15 @@ import (
 var queryCommand = &cobra.Command{
 	Use:   "query",
 	Short: "query firestore",
-	Run: func(*cobra.Command, []string) {
+	RunE: func(*cobra.Command, []string) error {
 		config, err := initQueryConfig()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			return err
 		}
 
 		client, err := firestore.NewClient(config.ProjectID)
 		if err != nil {
-			fmt.Printf("failed to create firestore client: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("creating firestore client: %v", err)
 		}
 		defer client.Close()
 
@@ -38,16 +35,14 @@ var queryCommand = &cobra.Command{
 			if config.Count {
 				count, err := queryClient.GetCount()
 				if err != nil {
-					fmt.Printf("loading documents count: %v\n", err)
-					os.Exit(1)
+					return fmt.Errorf("loading documents count: %v", err)
 				}
 
 				fmt.Print(count)
 			} else {
 				docs, err := queryClient.GetDocs()
 				if err != nil {
-					fmt.Printf("loading documents: %v\n", err)
-					os.Exit(1)
+					return fmt.Errorf("loading documents: %v", err)
 				}
 
 				if docs == nil {
@@ -56,8 +51,7 @@ var queryCommand = &cobra.Command{
 
 				j, err := json.Marshal(docs)
 				if err != nil {
-					fmt.Printf("marshalling documents to json: %v\n", err)
-					os.Exit(1)
+					return fmt.Errorf("marshalling documents to json: %v", err)
 				}
 
 				fmt.Print(string(j))
@@ -69,21 +63,21 @@ var queryCommand = &cobra.Command{
 			doc, err := docClient.GetDoc()
 			if errors.Is(err, firestore.ErrDocumentNotFound) {
 				fmt.Print("null")
-				os.Exit(0)
+				return nil
 			}
 			if err != nil {
-				fmt.Printf("loading document: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("loading document: %v", err)
 			}
 
 			j, err := json.Marshal(doc)
 			if err != nil {
-				fmt.Printf("marshalling document to json: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("marshalling document to json: %v", err)
 			}
 
 			fmt.Print(string(j))
 		}
+
+		return nil
 	},
 }
 

@@ -16,22 +16,21 @@ import (
 var setCommand = &cobra.Command{
 	Use:   "set",
 	Short: "insert / update firestore documents",
-	Run: func(*cobra.Command, []string) {
+	RunE: func(*cobra.Command, []string) error {
 		config, err := initSetConfig()
 		if errors.Is(err, errNonEmulatorProjectID) {
 			fmt.Println("only emulator projects are supported (projects starting with demo-*).")
 			fmt.Println("see https://firebase.google.com/docs/emulator-suite/connect_firestore#choose_a_firebase_project")
 			os.Exit(1)
+			return nil
 		}
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			return err
 		}
 
 		client, err := firestore.NewClient(config.ProjectID)
 		if err != nil {
-			fmt.Printf("failed to create firestore client: %v\n", err)
-			os.Exit(1)
+			return fmt.Errorf("failed to create firestore client: %v", err)
 		}
 		defer client.Close()
 
@@ -45,16 +44,16 @@ var setCommand = &cobra.Command{
 		if firestore.IsCollectionPath(config.Path) {
 			err := setClient.SetMany(config.CollectionData, options)
 			if err != nil {
-				fmt.Printf("failed to set documents: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("failed to set documents: %v", err)
 			}
 		} else if firestore.IsDocumentPath(config.Path) {
 			err := setClient.Set(config.DocumentData, options)
 			if err != nil {
-				fmt.Printf("failed to set document: %v\n", err)
-				os.Exit(1)
+				return fmt.Errorf("failed to set document: %v", err)
 			}
 		}
+
+		return nil
 	},
 }
 
