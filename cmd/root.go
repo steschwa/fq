@@ -12,7 +12,7 @@ import (
 
 var (
 	Version   = "0.0.1"
-	CommitSHA = ""
+	CommitSHA = "dev"
 )
 
 var rootCmd = &cobra.Command{
