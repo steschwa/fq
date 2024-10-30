@@ -70,6 +70,9 @@ func init() {
 	setCommand.Flags().BoolVar(&showProgress, "progress", false, "show the progress")
 	setCommand.Flags().IntVar(&delay, "delay", 0, "delay between operations in milliseconds")
 
+	addProjectFlag(setCommand)
+	addPathFlag(setCommand)
+
 	c := carapace.Gen(setCommand)
 	c.Standalone()
 	c.FlagCompletion(carapace.ActionMap{

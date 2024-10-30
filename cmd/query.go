@@ -96,6 +96,9 @@ func init() {
 	queryCommand.Flags().BoolVar(&desc, "desc", false, "order documents in descending order (only used if --order-by is set)")
 	queryCommand.Flags().IntVar(&limit, "limit", -1, "limit number of returned documents")
 
+	addProjectFlag(queryCommand)
+	addPathFlag(queryCommand)
+
 	c := carapace.Gen(queryCommand)
 	c.Standalone()
 }
