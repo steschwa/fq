@@ -97,7 +97,9 @@ func (c SetClient) Set(data JSONObject, options SetOptions) error {
 		return err
 	}
 
-	fmt.Printf("1/1")
+	if options.ShowProgress {
+		fmt.Printf("1/1")
+	}
 
 	return nil
 }
