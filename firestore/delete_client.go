@@ -62,6 +62,11 @@ func (c DeleteClient) deleteMany(ctx context.Context, options DeleteOptions) err
 		return fmt.Errorf("loading document: %v", err)
 	}
 
+	if len(snapshots) == 0 {
+		fmt.Println("no documents to delete")
+		return nil
+	}
+
 	writer := c.client.BulkWriter(ctx)
 	defer writer.End()
 
