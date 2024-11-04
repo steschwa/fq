@@ -42,6 +42,7 @@ var (
 func init() {
 	rootCmd.AddCommand(queryCommand)
 	rootCmd.AddCommand(setCommand)
+	rootCmd.AddCommand(deleteCommand)
 
 	rootCmd.PersistentFlags().BoolVarP(&PrintVersion, "version", "v", false, "print the version")
 

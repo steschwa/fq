@@ -82,16 +82,16 @@ var queryCommand = &cobra.Command{
 }
 
 var (
-	count   bool
-	where   []string
-	orderBy string
-	desc    bool
-	limit   int
+	count      bool
+	queryWhere []string
+	orderBy    string
+	desc       bool
+	limit      int
 )
 
 func init() {
 	queryCommand.Flags().BoolVar(&count, "count", false, "count documents instead of returning json")
-	queryCommand.Flags().StringArrayVarP(&where, "where", "w", nil, "documents filter in format {KEY} {OPERATOR} {VALUE}. can be used multiple times")
+	queryCommand.Flags().StringArrayVarP(&queryWhere, "where", "w", nil, "documents filter in format {KEY} {OPERATOR} {VALUE}. can be used multiple times")
 	queryCommand.Flags().StringVar(&orderBy, "order-by", "", "set column to order by")
 	queryCommand.Flags().BoolVar(&desc, "desc", false, "order documents in descending order (only used if --order-by is set)")
 	queryCommand.Flags().IntVar(&limit, "limit", -1, "limit number of returned documents")
@@ -125,8 +125,8 @@ func initQueryConfig() (config QueryConfig, err error) {
 	}
 	config.Path = Path
 
-	config.Wheres = make([]firestore.Where, len(where))
-	for i, wRaw := range where {
+	config.Wheres = make([]firestore.Where, len(queryWhere))
+	for i, wRaw := range queryWhere {
 		w, err := parser.Parse(wRaw)
 		if err != nil {
 			return config, fmt.Errorf("failed to parse firestore where: %s", err.Error())
