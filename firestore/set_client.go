@@ -34,6 +34,11 @@ func (c SetClient) SetMany(data JSONArray, options SetOptions) error {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 
+	if len(data.Values) == 0 {
+		fmt.Println("empty input data")
+		return nil
+	}
+
 	var setOptions []firestore.SetOption
 	if !options.ReplaceDocument {
 		setOptions = append(setOptions, firestore.MergeAll)
