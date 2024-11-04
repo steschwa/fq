@@ -8,7 +8,6 @@ import (
 
 	"cloud.google.com/go/firestore"
 	"cloud.google.com/go/firestore/apiv1/firestorepb"
-	"google.golang.org/api/iterator"
 )
 
 const (
@@ -64,17 +63,18 @@ func (b QueryClient) GetDocs() ([]any, error) {
 	iter := b.query.Documents(ctx)
 	defer iter.Stop()
 
+	docs, err := iter.GetAll()
+	if errors.Is(err, context.Canceled) {
+		return nil, fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	var out []any
-	for {
-		doc, err := iter.Next()
-		if errors.Is(err, iterator.Done) {
-			break
-		}
-		if errors.Is(err, context.Canceled) {
-			return nil, fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
-		}
-		if err != nil {
-			return nil, err
+	for _, doc := range docs {
+		if doc == nil || !doc.Exists() {
+			continue
 		}
 
 		out = append(out, doc.Data())
