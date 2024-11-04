@@ -9,6 +9,8 @@ build-dev: (build "dev")
 build version: clean test
     go build -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" -o ./fq 
 
+install-dev: (install "dev")
+
 install version: clean test
     go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" .
 
