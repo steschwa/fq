@@ -61,7 +61,7 @@ func (c SetClient) SetMany(data JSONArray, options SetOptions) error {
 
 		_, err := writer.Set(doc, obj, setOptions...)
 		if errors.Is(err, context.Canceled) {
-			return fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+			return fmt.Errorf("setting documents timed out")
 		}
 		if err != nil {
 			return err
@@ -91,7 +91,7 @@ func (c SetClient) Set(data JSONObject, options SetOptions) error {
 
 	_, err := c.client.Doc(c.path).Set(ctx, data.Value, setOptions...)
 	if errors.Is(err, context.Canceled) {
-		return fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+		return fmt.Errorf("setting document timed out")
 	}
 	if err != nil {
 		return err

@@ -65,7 +65,7 @@ func (b QueryClient) GetDocs() ([]any, error) {
 
 	docs, err := iter.GetAll()
 	if errors.Is(err, context.Canceled) {
-		return nil, fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+		return nil, fmt.Errorf("getting documents timed out")
 	}
 	if err != nil {
 		return nil, err
@@ -90,7 +90,7 @@ func (b QueryClient) GetCount() (int, error) {
 	aggr := b.query.NewAggregationQuery().WithCount("count")
 	res, err := aggr.Get(ctx)
 	if errors.Is(err, context.Canceled) {
-		return 0, fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+		return 0, fmt.Errorf("getting documents count timed out")
 	}
 	if err != nil {
 		return 0, err

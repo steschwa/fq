@@ -24,7 +24,7 @@ func NewClient(projectID string) (*firestore.Client, error) {
 
 	client, err := firestore.NewClient(ctx, projectID, option.WithTelemetryDisabled())
 	if errors.Is(err, context.Canceled) {
-		return nil, fmt.Errorf("timed-out after %d seconds", timeoutNewClient)
+		return nil, fmt.Errorf("creating firestore client timed out")
 	}
 	if err != nil {
 		return nil, fmt.Errorf("creating firestore client")

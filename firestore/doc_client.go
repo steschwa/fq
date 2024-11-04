@@ -31,7 +31,7 @@ func (l DocClient) GetDoc() (any, error) {
 
 	snapshot, err := l.doc.Get(ctx)
 	if errors.Is(err, context.Canceled) {
-		return nil, fmt.Errorf("timed-out after %d seconds", timeoutRunQuery)
+		return nil, fmt.Errorf("getting document timed out")
 	}
 	if status.Code(err) == codes.NotFound {
 		return nil, ErrDocumentNotFound
