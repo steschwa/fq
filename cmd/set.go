@@ -58,17 +58,17 @@ var setCommand = &cobra.Command{
 }
 
 var (
-	dataPath     string
-	replaceDoc   bool
-	showProgress bool
-	delay        int
+	dataPath        string
+	replaceDoc      bool
+	setShowProgress bool
+	setDelay        int
 )
 
 func init() {
 	setCommand.Flags().StringVar(&dataPath, "data", "-", "input data json file. can be - to read from stdin")
 	setCommand.Flags().BoolVar(&replaceDoc, "replace", false, "replace documents instead of merging")
-	setCommand.Flags().BoolVar(&showProgress, "progress", false, "show the progress")
-	setCommand.Flags().IntVar(&delay, "delay", 0, "delay between operations in milliseconds")
+	setCommand.Flags().BoolVar(&setShowProgress, "progress", false, "show the progress")
+	setCommand.Flags().IntVar(&setDelay, "delay", 0, "delay between operations in milliseconds")
 
 	addProjectFlag(setCommand)
 	addPathFlag(setCommand)
@@ -110,12 +110,12 @@ func initSetConfig() (config SetConfig, err error) {
 	}
 	config.Path = Path
 	config.ReplaceDoc = replaceDoc
-	config.ShowProgress = showProgress
+	config.ShowProgress = setShowProgress
 
-	if delay < 0 {
+	if setDelay < 0 {
 		return config, errNegativeDelay
 	}
-	config.Delay = delay
+	config.Delay = setDelay
 
 	var (
 		r            io.Reader

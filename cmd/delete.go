@@ -33,8 +33,11 @@ var deleteCommand = &cobra.Command{
 		defer client.Close()
 
 		deleteClient := firestore.NewDeleteClient(client, config.Path)
-		err = deleteClient.Exec()
 		deleteClient.SetWheres(config.Wheres)
+		err = deleteClient.Exec(firestore.DeleteOptions{
+			ShowProgress: config.ShowProgress,
+			Delay:        config.Delay,
+		})
 		if err != nil {
 			return fmt.Errorf("deleting documents: %v", err)
 		}
@@ -44,11 +47,15 @@ var deleteCommand = &cobra.Command{
 }
 
 var (
-	deleteWhere []string
+	deleteWhere        []string
+	deleteShowProgress bool
+	deleteDelay        int
 )
 
 func init() {
 	deleteCommand.Flags().StringArrayVarP(&deleteWhere, "where", "w", nil, "documents filter in format {KEY} {OPERATOR} {VALUE}. can be used multiple times")
+	deleteCommand.Flags().BoolVar(&deleteShowProgress, "progress", false, "show the progress")
+	deleteCommand.Flags().IntVar(&deleteDelay, "delay", 0, "delay between operations in milliseconds")
 
 	addProjectFlag(deleteCommand)
 	addPathFlag(deleteCommand)
@@ -58,9 +65,11 @@ func init() {
 }
 
 type DeleteConfig struct {
-	ProjectID string
-	Path      string
-	Wheres    []firestore.Where
+	ProjectID    string
+	Path         string
+	Wheres       []firestore.Where
+	ShowProgress bool
+	Delay        int
 }
 
 func initDeleteConfig() (config DeleteConfig, err error) {
@@ -78,8 +87,8 @@ func initDeleteConfig() (config DeleteConfig, err error) {
 	}
 	config.Path = Path
 
-	config.Wheres = make([]firestore.Where, len(queryWhere))
-	for i, wRaw := range queryWhere {
+	config.Wheres = make([]firestore.Where, len(deleteWhere))
+	for i, wRaw := range deleteWhere {
 		w, err := parser.Parse(wRaw)
 		if err != nil {
 			return config, fmt.Errorf("failed to parse firestore where: %s", err.Error())
@@ -87,6 +96,13 @@ func initDeleteConfig() (config DeleteConfig, err error) {
 
 		config.Wheres[i] = w
 	}
+
+	config.ShowProgress = deleteShowProgress
+
+	if setDelay < 0 {
+		return config, errNegativeDelay
+	}
+	config.Delay = setDelay
 
 	return config, nil
 }
