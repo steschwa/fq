@@ -34,6 +34,7 @@ var deleteCommand = &cobra.Command{
 
 		deleteClient := firestore.NewDeleteClient(client, config.Path)
 		err = deleteClient.Exec()
+		deleteClient.SetWheres(config.Wheres)
 		if err != nil {
 			return fmt.Errorf("deleting documents: %v", err)
 		}
