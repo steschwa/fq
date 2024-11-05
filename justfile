@@ -6,12 +6,13 @@ next_version := `git cliff --bumped-version`
 
 build-dev: (build "dev")
 
-build version: clean test
+build version: test
+    -rm ./fq
     go build -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" -o ./fq 
 
 install-dev: (install "dev")
 
-install version: clean test
+install version: test
     go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" .
 
 release: 
@@ -19,9 +20,6 @@ release:
     git add CHANGELOG.md
     git commit -m 'chore(release): prepare for {{next_version}}'
     git tag {{next_version}}
-
-clean:
-    -rm ./fq
 
 test:
     go test ./...
