@@ -17,7 +17,7 @@ install version: clean test
 release: 
     git cliff --bump -o CHANGELOG.md
     git add CHANGELOG.md
-    git commit -m 'chore(release): prepare changelog for {{next_version}}'
+    git commit -m 'chore(release): prepare for {{next_version}}'
     git tag {{next_version}}
 
 clean:
