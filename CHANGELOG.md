@@ -1,5 +1,41 @@
 # Changelog
 
+## [1.1.0] - 2025-01-07
+
+### 🚀 Features
+
+- Delete documents
+- Filter deleted documents
+- Show delete progress
+- Show if no deletable documents where found
+- Print if no input data
+
+### 🐛 Bug Fixes
+
+- Print progress if configured
+- Query != null
+
+### 🚜 Refactor
+
+- Load all docs
+
+### 📚 Documentation
+
+- Comments
+
+### ⚙️ Miscellaneous Tasks
+
+- Rename
+- Wording
+
+### Build
+
+- Release script to build, tag and create changelog
+- Rename script
+- Install-dev task
+- Fix detect release commit
+- Remove output before build
+
 ## [1.0.0] - 2024-10-30
 
 ### 🚀 Features
