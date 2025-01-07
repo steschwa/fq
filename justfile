@@ -2,7 +2,6 @@ default:
     @just --list
 
 commit_sha := `git rev-parse --short HEAD`
-next_version := `git cliff --bumped-version`
 
 # build a dev version
 build-dev: (build "dev")
@@ -21,10 +20,7 @@ install version: test
 
 # create a new release
 release: 
-    git cliff --bump -o CHANGELOG.md
-    git add CHANGELOG.md
-    git commit -m 'chore(release): prepare for {{next_version}}'
-    git tag {{next_version}}
+    ./scripts/release.nu
 
 # run all tests
 test:
