@@ -4,7 +4,7 @@ go 1.23.2
 
 require (
 	cloud.google.com/go/firestore v1.18.0
-	github.com/carapace-sh/carapace v1.3.3
+	github.com/carapace-sh/carapace v1.5.3
 	github.com/spf13/cobra v1.8.1
 	github.com/stretchr/testify v1.10.0
 	google.golang.org/api v0.215.0
