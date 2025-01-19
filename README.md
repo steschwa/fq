@@ -31,8 +31,6 @@ fq --project <your-project-id> --path <your-collection-or-document-path> <subcom
 
 Query Firestore documents.
 
-**Flags:**
-
 - `--count`: Count documents instead of returning JSON.
 - `--where`: Filter documents in the format `{KEY} {OPERATOR} {VALUE}` (can be used multiple times).
 - `--order-by`: Set column to order by.
@@ -43,8 +41,6 @@ Query Firestore documents.
 
 Insert or update Firestore documents.
 
-**Flags:**
-
 - `--data`: Input data JSON file (can be `-` to read from stdin).
 - `--replace`: Replace documents instead of merging.
 - `--progress`: Show the progress.
@@ -53,8 +49,6 @@ Insert or update Firestore documents.
 ### delete
 
 Delete Firestore documents.
-
-**Flags:**
 
 - `--where`: Filter documents in the format `{KEY} {OPERATOR} {VALUE}` (can be used multiple times).
 - `--progress`: Show the progress.
