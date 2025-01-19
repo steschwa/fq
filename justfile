@@ -5,7 +5,6 @@ commit_sha := `git rev-parse --short HEAD`
 
 # build a dev version
 build-dev: (build "dev")
-
 # build a specific version
 build version: test
     -rm ./fq
@@ -13,7 +12,6 @@ build version: test
 
 # install a dev version
 install-dev: (install "dev")
-
 # install a specific version
 install version: test
     go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" .
@@ -25,3 +23,7 @@ release:
 # run all tests
 test:
     go test ./...
+
+# list all outdated direct dependencies
+outdated:
+    go list -u -m -f '{{if not .Indirect}}{{if .Update}}{{.}}{{end}}{{end}}' all
