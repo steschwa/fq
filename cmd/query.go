@@ -45,10 +45,6 @@ var queryCommand = &cobra.Command{
 					return fmt.Errorf("loading documents: %v", err)
 				}
 
-				if docs == nil {
-					docs = []any{}
-				}
-
 				j, err := json.Marshal(docs)
 				if err != nil {
 					return fmt.Errorf("marshalling documents to json: %v", err)

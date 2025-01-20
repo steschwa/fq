@@ -56,7 +56,7 @@ func (b *QueryClient) applyWhere(where Where) {
 	b.query = b.query.Where(string(where.Key), where.Operator.String(), where.Value.Value())
 }
 
-func (b QueryClient) GetDocs() ([]any, error) {
+func (b QueryClient) GetDocs() ([]*FirestoreDoc, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 
@@ -71,15 +71,18 @@ func (b QueryClient) GetDocs() ([]any, error) {
 		return nil, err
 	}
 
-	var out []any
+	var out []*FirestoreDoc
 	for _, doc := range docs {
 		if doc == nil || !doc.Exists() {
 			continue
 		}
 
-		out = append(out, doc.Data())
+		out = append(out, NewFirestoreDoc(doc.Data()))
 	}
 
+	if out == nil {
+		return make([]*FirestoreDoc, 0), nil
+	}
 	return out, nil
 }
 

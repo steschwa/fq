@@ -25,7 +25,7 @@ func NewDocClient(client *firestore.Client, path string) *DocClient {
 	}
 }
 
-func (l DocClient) GetDoc() (any, error) {
+func (l DocClient) GetDoc() (*FirestoreDoc, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second*timeoutRunQuery)
 	defer cancel()
 
@@ -40,5 +40,5 @@ func (l DocClient) GetDoc() (any, error) {
 		return nil, err
 	}
 
-	return snapshot.Data(), nil
+	return NewFirestoreDoc(snapshot.Data()), nil
 }
