@@ -18,7 +18,7 @@ install version: test
 
 # create a new release
 release: 
-    ./scripts/release.nu
+    @./scripts/release.nu
 
 # run all tests
 test:
@@ -26,4 +26,4 @@ test:
 
 # list all outdated direct dependencies
 outdated:
-    go list -u -m -f '{{if not .Indirect}}{{if .Update}}{{.}}{{end}}{{end}}' all
+    @./scripts/list-outdated-deps.nu
