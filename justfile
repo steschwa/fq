@@ -17,7 +17,7 @@ install version: test
     go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" .
 
 # create a new release
-release: 
+release: test
     @./scripts/release.nu
 
 # run all tests
