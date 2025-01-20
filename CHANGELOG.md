@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.2.0] - 2025-01-20
+
+### 🚀 Features
+
+- Encode NaN to json
+
+### 📚 Documentation
+
+- README
+- Update README
+
+### Build
+
+- Release script
+- List outdated dependencies
+- Escape just quoting
+
 ## [1.1.0] - 2025-01-07
 
 ### 🚀 Features
