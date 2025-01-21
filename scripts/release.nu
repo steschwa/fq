@@ -13,4 +13,7 @@ def main [] {
     git add CHANGELOG.md
     git commit -m $"chore\(release\): prepare for ($next_version)"
     git tag $next_version
+
+    git push github main
+    git push github $next_version
 }
