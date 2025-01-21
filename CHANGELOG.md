@@ -8,6 +8,7 @@
 - Set runner
 - Release workflow
 - Release workflow permissions
+- Use changelog content for release
 
 ### Build
 
