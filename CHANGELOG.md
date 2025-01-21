@@ -1,5 +1,18 @@
 # Changelog
 
+## [1.2.1] - 2025-01-21
+
+### ⚙️ Miscellaneous Tasks
+
+- Workflow to run go tests
+- Set runner
+- Release workflow
+- Release workflow permissions
+
+### Build
+
+- Test before release
+
 ## [1.2.0] - 2025-01-20
 
 ### 🚀 Features
