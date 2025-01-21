@@ -9,6 +9,7 @@
 - Release workflow
 - Release workflow permissions
 - Use changelog content for release
+- Fetch whole repo
 
 ### Build
 
