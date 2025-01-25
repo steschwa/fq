@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.3] - 2025-01-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Build binaries for release
+
 ## [1.2.2] - 2025-01-25
 
 ### ⚙️ Miscellaneous Tasks
