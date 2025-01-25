@@ -1,5 +1,11 @@
 # Changelog
 
+## [1.2.2] - 2025-01-25
+
+### ⚙️ Miscellaneous Tasks
+
+- Push after creating release
+
 ## [1.2.1] - 2025-01-21
 
 ### ⚙️ Miscellaneous Tasks

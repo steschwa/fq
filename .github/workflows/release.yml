@@ -9,20 +9,83 @@ permissions:
     contents: write
 
 jobs:
-    release:
+    generate-changelog:
+        name: Generate Changelog
         runs-on: ubuntu-24.04
+        outputs:
+            changelog-content: ${{steps.git-cliff.outputs.content}}
         steps:
             - uses: actions/checkout@v4
               with:
                   fetch-depth: 0
 
             - name: Generate Changelog
-              id: changelog
+              id: git-cliff
               uses: orhun/git-cliff-action@v4
               with:
                   args: --latest --strip header
 
+    build:
+        name: Build
+        strategy:
+            matrix:
+                os: [ubuntu-24.04, macos-latest]
+        env:
+            LDFLAGS: "-s -X 'github.com/steschwa/fq/cmd.Version=${{github.ref_name}}' -X 'github.com/steschwa/fq/cmd.CommitSHA=${{github.sha}}'"
+        runs-on: ${{matrix.os}}
+        steps:
+            - uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - uses: actions/setup-go@v5
+              with:
+                  go-version: "1.23.2"
+
+            - name: Build macOS
+              if: ${{ startsWith(matrix.os, 'macos') }}
+              env:
+                  GOOS: darwin
+              run: |
+                  GOARCH=amd64 go build -ldflags "$LDFLAGS" -o ./build/macos-x86_64/fq
+                  GOARCH=arm64 go build -ldflags "$LDFLAGS" -o ./build/macos-arm64/fq
+
+                  tar -czvf fq-macos-x86_64.tar.gz ./build/macos-x86_64/fq
+                  tar -czvf fq-macos-arm64.tar.gz ./build/macos-arm64/fq
+
+            - name: Build Linux
+              if: ${{ startsWith(matrix.os, 'ubuntu') }}
+              env:
+                  GOOS: linux
+              run: |
+                  GOARCH=amd64 go build -ldflags "$LDFLAGS" -o ./build/linux-x86_64/fq
+                  GOARCH=arm64 go build -ldflags "$LDFLAGS" -o ./build/linux-arm64/fq
+
+                  tar -czvf fq-linux-x86_64.tar.gz ./build/linux-x86_64/fq
+                  tar -czvf fq-linux-arm64.tar.gz ./build/linux-arm64/fq
+
+            - name: Upload Artifacts
+              uses: actions/upload-artifact@v4
+              with:
+                  name: build-${{ matrix.os }}
+                  path: fq-*.tar.gz
+
+    publish-release:
+        name: Publish Release
+        runs-on: ubuntu-24.04
+        needs: [generate-changelog, build]
+        steps:
+            - name: Download Artifacts
+              uses: actions/download-artifact@v4
+              with:
+                  path: artifacts
+                  pattern: build-*
+                  merge-multiple: true
+
+            - run: ls -R artifacts
+
             - name: Create Release
               uses: softprops/action-gh-release@v2
               with:
-                  body: ${{ steps.changelog.outputs.content }}
+                  body: ${{ needs.generate-changelog.outputs.changelog-content }}
+                  files: artifacts/*
