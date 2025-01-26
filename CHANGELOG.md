@@ -1,5 +1,16 @@
 # Changelog
 
+## [1.2.4] - 2025-01-26
+
+### 📚 Documentation
+
+- Update README
+
+### ⚙️ Miscellaneous Tasks
+
+- Add license
+- Bump homebrew formula
+
 ## [1.2.3] - 2025-01-25
 
 ### ⚙️ Miscellaneous Tasks
