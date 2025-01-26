@@ -87,3 +87,15 @@ jobs:
               with:
                   body: ${{ needs.generate-changelog.outputs.changelog-content }}
                   files: artifacts/*
+
+    bump-homebrew-formula:
+        name: Bump Homebrew Formula
+        runs-on: ubuntu-24.04
+        needs: [publish-release]
+        steps:
+            - uses: mislav/bump-homebrew-formula-action@v3
+              with:
+                  homebrew-tap: steschwa/homebrew-tap
+                  create-pullrequest: true
+              env:
+                  COMMITTER_TOKEN: ${{secrets.HOMEBREW_BUMP_COMMITTER_TOKEN}}
