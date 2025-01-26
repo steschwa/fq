@@ -31,7 +31,7 @@ jobs:
             matrix:
                 os: [ubuntu-24.04, macos-latest]
         env:
-            LDFLAGS: "-s -X 'github.com/steschwa/fq/cmd.Version=${{github.ref_name}}' -X 'github.com/steschwa/fq/cmd.CommitSHA=${{github.sha}}'"
+            LDFLAGS: "-s -X 'github.com/steschwa/fq/cmd.Version=${{github.ref_name}}' -X 'github.com/steschwa/fq/cmd.Revision=${{github.sha}}'"
         runs-on: ${{matrix.os}}
         steps:
             - uses: actions/checkout@v4

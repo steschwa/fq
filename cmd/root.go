@@ -11,8 +11,8 @@ import (
 )
 
 var (
-	Version   = "0.0.1"
-	CommitSHA = "dev"
+	Version  = "0.0.1"
+	Revision = "dev"
 )
 
 var rootCmd = &cobra.Command{
@@ -21,7 +21,7 @@ var rootCmd = &cobra.Command{
 	RunE: func(*cobra.Command, []string) error {
 		if PrintVersion {
 			fmt.Printf("version: %v\n", Version)
-			fmt.Printf("commit: %v", CommitSHA)
+			fmt.Printf("revision: %v", Revision)
 			return nil
 		}
 

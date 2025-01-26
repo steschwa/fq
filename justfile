@@ -8,13 +8,13 @@ build-dev: (build "dev")
 # build a specific version
 build version: test
     -rm ./fq
-    go build -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" -o ./fq 
+    go build -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.Revision={{commit_sha}}'" -o ./fq 
 
 # install a dev version
 install-dev: (install "dev")
 # install a specific version
 install version: test
-    go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.CommitSHA={{commit_sha}}'" .
+    go install -ldflags "-s -X 'github.com/steschwa/fq/cmd.Version={{version}}' -X 'github.com/steschwa/fq/cmd.Revision={{commit_sha}}'" .
 
 # create a new release
 release: test
