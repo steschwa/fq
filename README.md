@@ -5,6 +5,7 @@ A command-line interface (CLI) tool to interact with Firestore, allowing users t
 ## Table of Contents
 
 - [Installation](#installation)
+    - [homebrew](#homebrew)
 - [Usage](#usage)
 - [Commands](#commands)
     - [query](#query)
@@ -15,7 +16,17 @@ A command-line interface (CLI) tool to interact with Firestore, allowing users t
 
 ## Installation (TODO)
 
-- [ ] homebrew formulae
+### Homebrew
+
+Homebrew Formulae are managed in a separate repository: https://github.com/steschwa/homebrew-tap
+
+```bash
+brew install steschwa/tap/fq
+```
+
+### Binary releases
+
+You can download a pre-built binary from the releases page: https://github.com/steschwa/fq/releases
 
 ## Usage
 
