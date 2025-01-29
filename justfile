@@ -1,4 +1,4 @@
-default:
+_default:
     @just --list
 
 commit_sha := `git rev-parse --short HEAD`
