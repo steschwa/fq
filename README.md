@@ -14,7 +14,7 @@ A command-line interface (CLI) tool to interact with Firestore, allowing users t
 - [Contributing](#contributing)
 - [License](#license)
 
-## Installation (TODO)
+## Installation
 
 ### Homebrew
 
