@@ -94,6 +94,10 @@ func TestParseOperator(t *testing.T) {
 	assert.NoError(err)
 	assert.Equal(firestore.In, o)
 
+	o, err = parseOperator("not-in")
+	assert.NoError(err)
+	assert.Equal(firestore.NotIn, o)
+
 	o, err = parseOperator("array-contains-any")
 	assert.NoError(err)
 	assert.Equal(o, firestore.ArrayContainsAny)

@@ -16,7 +16,7 @@ var (
 )
 
 var (
-	whereRe = regexp.MustCompile(`^([a-zA-Z._]+) (==|!=|>|<|>=|<=|in|array-contains-any) (.*)$`)
+	whereRe = regexp.MustCompile(`^([a-zA-Z._]+) (==|!=|>|<|>=|<=|in|not-in|array-contains-any) (.*)$`)
 )
 
 func Parse(source string) (firestore.Where, error) {
@@ -61,6 +61,8 @@ func parseOperator(op string) (firestore.Operator, error) {
 		return firestore.Lte, nil
 	case "in":
 		return firestore.In, nil
+	case "not-in":
+		return firestore.NotIn, nil
 	case "array-contains-any":
 		return firestore.ArrayContainsAny, nil
 	default:

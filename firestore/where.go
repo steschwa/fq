@@ -39,6 +39,8 @@ type (
 	}
 )
 
+// see https://pkg.go.dev/cloud.google.com/go/firestore#Query.Where
+// for a list of all supported operators
 const (
 	Eq               Operator = iota + 1 // ==
 	Neq                                  // !=
@@ -47,6 +49,7 @@ const (
 	Gte                                  // >=
 	Lte                                  // <=
 	In                                   // in
+	NotIn                                // not-in
 	ArrayContainsAny                     // array-contains-any
 )
 
@@ -79,6 +82,8 @@ func (o Operator) String() string {
 		return "<="
 	case In:
 		return "in"
+	case NotIn:
+		return "not-in"
 	case ArrayContainsAny:
 		return "array-contains-any"
 	default:
