@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.0] - 2025-01-29
+
+### 🚀 Features
+
+- Not-in operator
+
+### 🚜 Refactor
+
+- Rename to fit homebrew
+
+### Build
+
+- Silent default task
+
 ## [1.2.4] - 2025-01-26
 
 ### 📚 Documentation
