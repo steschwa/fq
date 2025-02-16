@@ -16,23 +16,17 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "fq",
-	Short: "CLI tool to interact with Firestore",
+	Use:     "fq",
+	Short:   "CLI tool to interact with Firestore",
+	Version: fmt.Sprintf("%s - revision %s", Version, Revision),
 	RunE: func(*cobra.Command, []string) error {
-		if PrintVersion {
-			fmt.Printf("version: %v\n", Version)
-			fmt.Printf("revision: %v", Revision)
-			return nil
-		}
-
 		return errors.New("please specify a subcommand to run")
 	},
 }
 
 var (
-	ProjectID    string
-	Path         string
-	PrintVersion bool
+	ProjectID string
+	Path      string
 )
 
 var (
@@ -43,8 +37,6 @@ func init() {
 	rootCmd.AddCommand(queryCommand)
 	rootCmd.AddCommand(setCommand)
 	rootCmd.AddCommand(deleteCommand)
-
-	rootCmd.PersistentFlags().BoolVarP(&PrintVersion, "version", "v", false, "print the version")
 
 	carapace.Gen(rootCmd).Standalone()
 }
