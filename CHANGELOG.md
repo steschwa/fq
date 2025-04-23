@@ -1,5 +1,19 @@
 # Changelog
 
+## [1.3.1] - 2025-04-23
+
+### 🚜 Refactor
+
+- Use cobra built-in version flag
+
+### 📚 Documentation
+
+- Remove todo in readme
+
+### ⚙️ Miscellaneous Tasks
+
+- Upgrade dependencies
+
 ## [1.3.0] - 2025-01-29
 
 ### 🚀 Features
